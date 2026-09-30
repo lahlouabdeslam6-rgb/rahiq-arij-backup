@@ -8,7 +8,7 @@ const locationName = (country, city) => {
 const dateTime = value => {
   if (!value) return '—'
   const iso = value.includes('T') ? value : value.replace(' ', 'T') + 'Z'
-  return new Intl.DateTimeFormat('ar-MA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Africa/Casablanca' }).format(new Date(iso))
+  return new Intl.DateTimeFormat('fr-MA', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Casablanca' }).format(new Date(iso))
 }
 let products = []
 async function api(path, options = {}) {
