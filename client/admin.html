@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>إدارة رحيق أريج</title>
+  <link rel="icon" href="/brand-logo.png" />
+  <link rel="stylesheet" href="/admin.css" />
+  <script src="/admin.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="identity" href="/"><img src="/brand-logo.png" alt="" /><span><strong>رحيق أريج</strong><small>لوحة الإدارة</small></span></a><a href="/">مشاهدة الموقع ↗</a></header>
+  <main>
+    <section id="loginPanel" class="loginPanel" hidden>
+      <div class="loginCard">
+        <img src="/brand-logo.png" alt="شعار رحيق أريج" />
+        <p class="eyebrow">لوحة الإدارة</p>
+        <h1>مرحبا بك</h1>
+        <p>سجل الدخول باش تتابع الزيارات وتبدّل المنتجات.</p>
+        <form id="loginForm">
+          <label>اسم المستخدم<input name="username" autocomplete="username" required value="admin" /></label>
+          <label>كلمة السر<input name="password" type="password" autocomplete="current-password" required /></label>
+          <button type="submit" class="primary">دخول للوحة</button>
+        </form>
+        <p id="loginError" class="error" role="alert"></p>
+      </div>
+    </section>
+    <section id="dashboard" class="dashboard" hidden>
+      <div class="heading"><div><p class="eyebrow">RAHIQ ARIJ / ADMIN</p><h1>لوحة التحكم</h1><p>الزيارات والمنتجات ديال الموقع العمومي.</p></div><button id="logoutBtn" class="secondary">تسجيل الخروج</button></div>
+      <div class="stats"><article><span>الزيارات</span><strong id="visitsCount">—</strong></article><article><span>الزوار التقريبيون</span><strong id="visitorsCount">—</strong></article><article><span>زيارات اليوم</span><strong id="todayCount">—</strong></article><article><span>المنتجات</span><strong id="productsCount">—</strong></article></div>
+      <div class="panels"><section class="panel"><div class="panelHeading"><h2>آخر الزيارات</h2><button id="refreshStats" class="secondary">تحديث</button></div><p class="hint">الموقع يسجل وقت الزيارة والمدينة/البلد التقريبيين حين توفرهما الشبكة، بلا تخزين عنوان IP.</p><div id="recentVisits" class="list"></div></section><section class="panel"><h2>منين جاو الزوار</h2><div id="places" class="list"></div></section></div>
+      <section class="panel productsPanel"><div class="panelHeading"><div><h2>المنتجات</h2><p class="hint">بدّل الصورة، الثمن والوصف؛ التغيير كيبان مباشرة فالموقع.</p></div><button id="addProduct" class="primary">+ منتج جديد</button></div><div id="productList" class="productList"></div></section>
+    </section>
+    <p id="globalError" class="error" role="alert"></p>
+  </main>
+  <dialog id="productDialog"><form id="productForm" method="dialog"><div class="dialogHead"><h2 id="dialogTitle">تعديل المنتج</h2><button type="button" id="closeDialog" class="iconButton" aria-label="إغلاق">×</button></div><input type="hidden" name="id"/><input type="hidden" name="imageKey"/><label>اسم المنتج<input name="name" maxlength="100" required /></label><label>الثمن بالدرهم<input name="price" type="number" min="1" max="100000" step="0.01" required /></label><label>الوصف<textarea name="description" rows="4" maxlength="600" placeholder="وصف قصير للعسل"></textarea></label><label>درجة لون العسل<select name="tone"><option value="clover">فاتح</option><option value="lemon">ذهبي فاتح</option><option value="eucalyptus">عنبري</option><option value="rehamna">عنبري غامق</option><option value="fernan">غامق</option><option value="daghmous">غامق دافئ</option><option value="sidr">داكن</option><option value="carob">داكن جداً</option></select></label><label>صورة المنتج <small>JPG أو PNG أو WebP، حتى 5MB</small><input name="image" type="file" accept="image/jpeg,image/png,image/webp" /></label><img id="imagePreview" class="imagePreview" alt="معاينة الصورة" hidden/><p id="formError" class="error" role="alert"></p><div class="dialogActions"><button type="button" id="cancelDialog" class="secondary">إلغاء</button><button type="submit" class="primary">حفظ التعديلات</button></div></form></dialog>
+</body>
+</html>

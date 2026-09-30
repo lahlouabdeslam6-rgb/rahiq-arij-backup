@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { extname, join, resolve, sep } from 'node:path'
-const root = resolve(import.meta.dirname, 'dist')
+const root = resolve(import.meta.dirname, 'dist/client')
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png' }
 createServer(async (req, res) => {
   const path = resolve(root, '.' + decodeURIComponent(req.url === '/' ? '/index.html' : req.url))
