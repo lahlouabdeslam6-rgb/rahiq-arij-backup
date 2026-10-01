@@ -32,7 +32,9 @@ const request = (path, method = 'GET', body, cookie) => new Request('https://exa
 test('admin login protects edits while visits and product changes persist', async () => {
   const initial = await worker.fetch(request('/api/products'), env)
   assert.equal(initial.status, 200)
-  assert.equal((await initial.json()).length, 8)
+  const initialProducts = await initial.json()
+  assert.equal(initialProducts.length, 8)
+  assert.ok(initialProducts[2].description.length > 100)
 
   const blocked = await worker.fetch(request('/api/products/1', 'PUT', { name: 'Updated', price: 120 }), env)
   assert.equal(blocked.status, 401)

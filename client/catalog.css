@@ -43,7 +43,10 @@
   height:42px;
   border-radius:50%;
   background:#fffaf0;
+  padding:0;
+  line-height:1;
 }
+.detailsDialog .closeDetails svg { display:block; width:19px; height:19px; }
 @media(max-width:700px) {
   .detailsDialog { width:calc(100% - 20px); max-height:calc(100dvh - 20px); }
   .detailsBody { display:block; min-height:0; }

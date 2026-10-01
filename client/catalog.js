@@ -7,7 +7,7 @@ const whatsapp = `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentC
 const dialog = document.createElement('dialog')
 dialog.className = 'detailsDialog'
 dialog.setAttribute('aria-label', 'تفاصيل المنتج')
-dialog.innerHTML = '<button class="closeDetails" aria-label="إغلاق">×</button><div class="detailsBody"></div>'
+dialog.innerHTML = '<button type="button" class="closeDetails" aria-label="إغلاق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button><div class="detailsBody"></div>'
 document.body.append(dialog)
 dialog.querySelector('.closeDetails').addEventListener('click', () => dialog.close())
 dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close() })
