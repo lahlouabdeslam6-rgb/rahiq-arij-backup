@@ -56,6 +56,12 @@ test('admin login protects edits while visits and product changes persist', asyn
   assert.equal(changed.price, 125)
   assert.equal(changed.description, 'وصف جديد')
 
+  const added = await worker.fetch(request('/api/products', 'POST', { name: 'عسل جديد', price: 180, description: 'منتوج من الإدارة', tone: 'lemon' }, cookie), env)
+  assert.equal(added.status, 201)
+  const catalogue = await (await worker.fetch(request('/api/products'), env)).json()
+  assert.equal(catalogue.length, 9)
+  assert.equal(catalogue.at(-1).name, 'عسل جديد')
+
   const form = new FormData()
   form.append('image', new File([new Uint8Array([137, 80, 78, 71])], 'photo.png', { type: 'image/png' }))
   const upload = await worker.fetch(request('/api/admin/upload', 'POST', form, cookie), env)

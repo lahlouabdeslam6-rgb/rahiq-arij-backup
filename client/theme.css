@@ -242,3 +242,22 @@
   .detailsMedia { height:195px; }
   .detailsMedia .jarVisual,.detailsMedia .uploadedImage { height:185px; }
 }
+
+.productArt .productIndex {
+  top:12px;
+  right:12px;
+  max-width:calc(100% - 24px);
+  padding:4px 10px;
+  border:1px solid #c9ae7c;
+  border-radius:3px;
+  background:rgba(255,250,239,.9);
+  color:#573a1d;
+  font-size:.8rem;
+  font-weight:700;
+  line-height:1.5;
+  letter-spacing:0;
+  text-align:right;
+}
+@media(max-width:560px) {
+  .productArt .productIndex { font-size:.68rem; right:8px; top:8px; max-width:calc(100% - 16px); padding:3px 7px; }
+}
