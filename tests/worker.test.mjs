@@ -94,3 +94,14 @@ test('checkout stores server-priced orders and admin can manage their status', a
   const stats = await (await worker.fetch(request('/api/admin/stats', 'GET', undefined, cookie), env)).json()
   assert.equal(stats.deliveredRevenue, 250)
 })
+
+test('correct admin password can recover from a prior rate limit', async () => {
+  for (let index = 0; index < 5; index++) {
+    const wrong = await worker.fetch(request('/api/admin/login', 'POST', { username: 'admin', password: 'wrong' }), env)
+    assert.equal(wrong.status, 401)
+  }
+  const limited = await worker.fetch(request('/api/admin/login', 'POST', { username: 'admin', password: 'wrong' }), env)
+  assert.equal(limited.status, 429)
+  const correct = await worker.fetch(request('/api/admin/login', 'POST', { username: 'admin', password: env.ADMIN_PASSWORD }), env)
+  assert.equal(correct.status, 200)
+})

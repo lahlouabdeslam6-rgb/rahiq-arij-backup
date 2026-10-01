@@ -180,9 +180,9 @@ export default {
         const visitorHash = await hmac(env.SESSION_SECRET, ip)
         const now = Math.floor(Date.now() / 1000)
         const attempt = await env.DB.prepare('SELECT count,first_at FROM login_attempts WHERE visitor_hash=?').bind(visitorHash).first()
-        if (attempt && now - attempt.first_at < 900 && attempt.count >= 5) return json({ error: 'محاولات كثيرة. حاول بعد ربع ساعة.' }, 429)
         const body = await bodyJson(request)
         if (body?.username !== (env.ADMIN_USERNAME || 'admin') || typeof body?.password !== 'string' || body.password.length > 256 || !equal(body.password, env.ADMIN_PASSWORD)) {
+          if (attempt && now - attempt.first_at < 900 && attempt.count >= 5) return json({ error: 'محاولات كثيرة. حاول بعد ربع ساعة.' }, 429)
           if (!attempt || now - attempt.first_at >= 900) await env.DB.prepare('INSERT INTO login_attempts(visitor_hash,count,first_at) VALUES (?,1,?) ON CONFLICT(visitor_hash) DO UPDATE SET count=1,first_at=excluded.first_at').bind(visitorHash, now).run()
           else await env.DB.prepare('UPDATE login_attempts SET count=count+1 WHERE visitor_hash=?').bind(visitorHash).run()
           return json({ error: 'اسم المستخدم أو كلمة السر غير صحيحة' }, 401)

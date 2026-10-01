@@ -20,7 +20,7 @@ details.addEventListener('click', event => { if (event.target === details) detai
 const cartDialog = document.createElement('dialog')
 cartDialog.className = 'cartDialog'
 cartDialog.setAttribute('aria-label', 'سلة المشتريات')
-cartDialog.innerHTML = '<div class="cartHeading"><div><span>RAHIQ ARIJ / PANIER</span><h2>سلة المشتريات</h2></div><button type="button" class="cartClose" aria-label="إغلاق">×</button></div><div class="cartContent"></div>'
+cartDialog.innerHTML = '<div class="cartHeading"><div><span>رحيق أريج / طلبك</span><h2>سلة المشتريات</h2></div><button type="button" class="cartClose" aria-label="إغلاق">×</button></div><div class="cartContent"></div>'
 document.body.append(cartDialog)
 cartDialog.querySelector('.cartClose').addEventListener('click', () => cartDialog.close())
 cartDialog.addEventListener('click', event => { if (event.target === cartDialog) cartDialog.close() })
@@ -41,9 +41,9 @@ function updateCart() {
   const count = cart.reduce((sum, line) => sum + line.quantity, 0)
   document.querySelectorAll('.cartCount').forEach(node => { node.textContent = count; node.hidden = !count })
   const content = cartDialog.querySelector('.cartContent')
-  if (!cart.length) { content.innerHTML = '<p class="cartEmpty">السلة خاوية دابا. اختار العسل لي بغيتي من المجموعة.</p><button type="button" class="cartContinue">شوف أنواع العسل</button>'; return }
+  if (!cart.length) { content.innerHTML = '<div class="cartEmpty"><span class="emptyCartIcon">◇</span><h3>سلة مشترياتك فارغة</h3><p>تعرّف على مجموعتنا واختر العسل المناسب لك.</p></div><button type="button" class="cartContinue">تصفح المنتجات</button>'; return }
   const subtotal = cart.reduce((sum, line) => sum + products.find(product => product.id === line.id).price * line.quantity, 0)
-  content.innerHTML = `<div class="cartLines">${cart.map(line => { const product = products.find(item => item.id === line.id); return `<article class="cartLine"><div class="cartThumb">${productPhoto(product)}</div><div><strong>${safe(product.name)}</strong><small>${money(product.price)}</small><div class="quantity"><button type="button" data-dec="${product.id}" aria-label="نقص كمية ${safe(product.name)}">−</button><span>${line.quantity}</span><button type="button" data-inc="${product.id}" aria-label="زيد كمية ${safe(product.name)}">+</button></div></div><b>${money(product.price * line.quantity)}</b></article>` }).join('')}</div><div class="cartTotal"><span>مجموع المنتجات</span><strong>${money(subtotal)}</strong></div><p class="cartNote">التوصيل والدفع عند الاستلام كيتأكدو معاك من بعد الطلب.</p><button type="button" class="checkoutStart">تأكيد الطلب ←</button>`
+  content.innerHTML = `<div class="cartLines">${cart.map(line => { const product = products.find(item => item.id === line.id); return `<article class="cartLine"><div class="cartThumb">${productPhoto(product)}</div><div><strong>${safe(product.name)}</strong><small>${money(product.price)}</small><div class="quantity"><button type="button" data-dec="${product.id}" aria-label="تقليل كمية ${safe(product.name)}">−</button><span>${line.quantity}</span><button type="button" data-inc="${product.id}" aria-label="زيادة كمية ${safe(product.name)}">+</button></div></div><b>${money(product.price * line.quantity)}</b></article>` }).join('')}</div><div class="cartFooter"><div class="cartTotal"><span>مجموع المنتجات</span><strong>${money(subtotal)}</strong></div><p class="cartNote">تُحدد رسوم التوصيل بعد مراجعة المدينة والعنوان. الدفع عند الاستلام.</p><button type="button" class="checkoutStart">متابعة الطلب ←</button></div>`
 }
 cartDialog.addEventListener('click', event => {
   const button = event.target.closest('button')
@@ -62,7 +62,14 @@ cartDialog.addEventListener('click', event => {
 })
 function renderCheckout() {
   const subtotal = cart.reduce((sum, line) => sum + products.find(product => product.id === line.id).price * line.quantity, 0)
-  cartDialog.querySelector('.cartContent').innerHTML = `<form id="checkoutForm"><p class="checkoutIntro">دخل معلوماتك باش نسجلو الطلب ونتواصلو معاك لتأكيد التوصيل. الأداء عند الاستلام.</p><div class="checkoutFields"><label>الاسم الكامل<input name="customerName" autocomplete="name" minlength="2" maxlength="100" required></label><label>رقم الهاتف<input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06XXXXXXXX" required></label><label>المدينة<input name="city" autocomplete="address-level2" minlength="2" maxlength="100" required></label><label>العنوان الكامل<textarea name="address" autocomplete="street-address" minlength="5" maxlength="300" required></textarea></label><label>ملاحظة (اختياري)<textarea name="note" maxlength="300"></textarea></label><label class="websiteField" aria-hidden="true">website<input name="website" tabindex="-1" autocomplete="off"></label></div><div class="cartTotal"><span>مجموع المنتجات</span><strong>${money(subtotal)}</strong></div><p class="cartNote">رسوم التوصيل كتتأكد معاك حسب المدينة قبل الإرسال.</p><p class="checkoutError" role="alert"></p><button type="submit" class="checkoutSubmit">أكد الطلب</button><button type="button" class="backToCart">رجع للسلة</button></form>`
+  cartDialog.querySelector('.cartContent').innerHTML = `<form id="checkoutForm">
+    <div class="checkoutStep"><span>01</span><div><h3>معلومات التواصل</h3><p>سنستخدم هذه المعلومات لتأكيد طلبك وتنظيم التوصيل.</p></div></div>
+    <div class="checkoutFields"><label>الاسم الكامل<input name="customerName" autocomplete="name" minlength="2" maxlength="100" required></label><label>رقم الهاتف<input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06 12 34 56 78" required></label></div>
+    <div class="checkoutStep"><span>02</span><div><h3>عنوان التوصيل</h3><p>أدخل عنواناً واضحاً لتسهيل الوصول إليك.</p></div></div>
+    <div class="checkoutFields"><label>المدينة<input name="city" autocomplete="address-level2" minlength="2" maxlength="100" required></label><label>العنوان الكامل<textarea name="address" autocomplete="street-address" minlength="5" maxlength="300" required></textarea></label><label>ملاحظة إضافية (اختياري)<textarea name="note" maxlength="300"></textarea></label><label class="websiteField" aria-hidden="true">website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <div class="checkoutSummary"><h3>ملخص الطلب</h3>${cart.map(line => { const product = products.find(item => item.id === line.id); return `<div class="summaryLine"><span>${line.quantity} × ${safe(product.name)}</span><strong>${money(product.price * line.quantity)}</strong></div>` }).join('')}<div class="cartTotal"><span>مجموع المنتجات</span><strong>${money(subtotal)}</strong></div><p class="cartNote">تُحدد رسوم التوصيل بعد مراجعة المدينة والعنوان.</p></div>
+    <p class="checkoutError" role="alert"></p><button type="submit" class="checkoutSubmit">تأكيد الطلب — ${money(subtotal)}</button><div class="checkoutTrust"><span>دفع عند الاستلام</span><span>تأكيد هاتفي للطلب</span></div><button type="button" class="backToCart">العودة إلى السلة</button>
+  </form>`
 }
 cartDialog.addEventListener('submit', async event => {
   if (event.target.id !== 'checkoutForm') return
@@ -77,14 +84,14 @@ cartDialog.addEventListener('submit', async event => {
     const result = await response.json()
     if (!response.ok) throw new Error(result.error || 'تعذر تسجيل الطلب')
     cart = []; saveCart()
-    cartDialog.querySelector('.cartContent').innerHTML = `<div class="orderSuccess"><span>✓</span><h3>تسجل الطلب ديالك</h3><p>رقم الطلب: <strong dir="ltr">${safe(result.orderNumber)}</strong></p><p>غادي نتواصلو معاك لتأكيد التوصيل والمبلغ النهائي. شكراً على ثقتك.</p><button type="button" class="cartContinue">رجع للموقع</button></div>`
+    cartDialog.querySelector('.cartContent').innerHTML = `<div class="orderSuccess"><span>✓</span><h3>تم تسجيل طلبك بنجاح</h3><p>رقم الطلب: <strong dir="ltr">${safe(result.orderNumber)}</strong></p><p>سنتواصل معك لتأكيد التوصيل والمبلغ النهائي. شكراً لثقتك برحيق أريج.</p><button type="button" class="cartContinue">متابعة التصفح</button></div>`
   } catch (error) { form.querySelector('.checkoutError').textContent = error.message; button.disabled = false }
 })
 
 fetch('/api/products', { cache: 'no-store' }).then(async response => {
   if (!response.ok) throw new Error('Products unavailable')
   products = await response.json()
-  grid.innerHTML = products.length ? products.map(product => `<article class="productCard"><div class="productArt"><span class="productIndex">${safe(product.name)}</span><button type="button" class="productImageButton" data-detail="${product.id}" aria-label="شوف تفاصيل ${safe(product.name)}">${productPhoto(product)}</button>${!product.imageKey ? '<span class="productMockupNote">تصوّر لتصميم العبوة</span>' : ''}</div><div class="productDetails"><div><h3>${safe(product.name)}</h3><p>${safe(product.description || 'عسل مغربي · مذاق أصيل')}</p></div><strong>${money(product.price)}</strong></div><div class="productActions"><button type="button" class="addCartButton" data-add="${product.id}">أضف للسلة +</button></div></article>`).join('') : '<div class="loading">ما كايناش منتجات متاحة دابا.</div>'
+  grid.innerHTML = products.length ? products.map(product => `<article class="productCard"><div class="productArt"><span class="productIndex">${safe(product.name)}</span><button type="button" class="productImageButton" data-detail="${product.id}" aria-label="عرض تفاصيل ${safe(product.name)}">${productPhoto(product)}</button>${!product.imageKey ? '<span class="productMockupNote">تصوّر لتصميم العبوة</span>' : ''}</div><div class="productDetails"><div><h3>${safe(product.name)}</h3><p>${safe(product.description || 'عسل مغربي · مذاق أصيل')}</p></div><strong>${money(product.price)}</strong></div><div class="productActions"><button type="button" class="addCartButton" data-add="${product.id}">أضف إلى السلة</button></div></article>`).join('') : '<div class="loading">لا توجد منتجات متاحة حالياً.</div>'
   updateCart()
   grid.addEventListener('click', event => {
     const add = event.target.closest('[data-add]')
@@ -93,7 +100,7 @@ fetch('/api/products', { cache: 'no-store' }).then(async response => {
     if (!detail) return
     const product = products.find(item => item.id === Number(detail.dataset.detail))
     if (!product) return
-    details.querySelector('.detailsBody').innerHTML = `<div class="detailsMedia">${productPhoto(product)}</div><div class="detailsCopy"><h2>${safe(product.name)}</h2><p>${safe(product.description || 'عسل مغربي خام بمذاق أصيل.')}</p><strong>${money(product.price)}</strong><button type="button" class="addCartButton" data-add="${product.id}">أضف للسلة +</button></div>`
+    details.querySelector('.detailsBody').innerHTML = `<div class="detailsMedia">${productPhoto(product)}</div><div class="detailsCopy"><h2>${safe(product.name)}</h2><p>${safe(product.description || 'عسل مغربي خام بمذاق أصيل.')}</p><strong>${money(product.price)}</strong><button type="button" class="addCartButton" data-add="${product.id}">أضف إلى السلة</button></div>`
     details.showModal()
   })
   details.addEventListener('click', event => { const button = event.target.closest('[data-add]'); if (button) addToCart(Number(button.dataset.add)) })

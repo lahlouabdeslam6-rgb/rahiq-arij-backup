@@ -373,3 +373,50 @@
   .cartDialog { width:100%;max-width:100%;max-height:94dvh;margin:auto 0 0;border-radius:14px 14px 0 0 }
   .floatingCart { bottom:14px;left:14px }
 }
+
+/* Brand palette: warm ivory, deep espresso and restrained antique gold. */
+.page { --ink:#281b13;--espresso:#28180f;--gold:#a36d28;--ivory:#f8f3ea;--line:#e3d6c3;background:#f8f3ea }
+.header { background:rgba(248,243,234,.98);border-color:#e3d6c3 }
+.hero { background:#f5eddf }
+.heroLandscape { opacity:.54 }
+.catalogue { background:#faf7f1 }
+.productCard { background:#fffdf8;border-color:#e5d9c8;box-shadow:0 8px 24px #3a24100b }
+.productCard:nth-child(4n+2) .productArt { background:radial-gradient(circle at 50% 40%,#f5ebd8,#e9dcc7 70%) }
+.productCard:nth-child(4n+3) .productArt { background:radial-gradient(circle at 50% 40%,#f4e8d8,#e7d5bf 70%) }
+.productCard:nth-child(4n+4) .productArt { background:radial-gradient(circle at 50% 40%,#f2e5d5,#e1cfb8 70%) }
+.goldButton { background:#a36d28;border-color:#a36d28 }
+.addCartButton,.cartTrigger,.checkoutStart,.checkoutSubmit,.cartContinue { background:#281b13;border-color:#281b13;color:#fffdf8;border-radius:2px }
+.addCartButton:hover,.cartTrigger:hover,.checkoutStart:hover,.checkoutSubmit:hover,.cartContinue:hover { background:#80521e;border-color:#80521e }
+.headerCta.cartTrigger { background:#281b13;border-color:#281b13;gap:10px;padding:11px 16px }
+.cartCount { background:#c6974e;color:#281b13 }
+.floatingCart { width:58px;height:58px;padding:0;justify-content:center;border-radius:50%;background:#281b13;border:2px solid #c6974e }
+.floatingCart .cartCount { position:absolute;top:-8px;right:-7px;min-width:22px;height:22px }
+.cartDialog { position:fixed;inset:0 0 0 auto;margin:0;width:min(490px,100vw);max-width:none;height:100dvh;max-height:100dvh;border-left:1px solid #ddcbb1;background:#faf7f1;border-radius:0 }
+.cartHeading { position:sticky;top:0;z-index:2;background:#faf7f1;padding:28px 30px 22px;border-color:#ddd0bd }
+.cartHeading span { color:#a36d28;letter-spacing:.1em;font-size:.72rem;font-weight:700 }
+.cartHeading h2 { font-size:1.8rem }
+.cartContent { min-height:calc(100dvh - 103px);display:flex;flex-direction:column;padding:16px 30px 30px }
+.cartFooter { margin-top:auto;padding-top:16px }
+.cartLine { grid-template-columns:70px minmax(0,1fr) auto;gap:12px }
+.cartThumb { width:70px;height:76px;background:#f0e7d7 }
+.cartEmpty { padding:60px 8px 25px;margin:auto;text-align:center }
+.cartEmpty h3 { font-size:1.4rem;margin:13px 0 4px }
+.cartEmpty p { color:#786550;margin:0 }
+.emptyCartIcon { display:grid;place-items:center;width:60px;height:60px;margin:auto;border:1px solid #c4a777;border-radius:50%;font-size:2rem;color:#a36d28 }
+.cartNote { color:#75634f }
+.checkoutStep { display:flex;gap:15px;border-top:1px solid #dac9b1;padding-top:16px;margin:14px 0 14px }
+.checkoutStep:first-child { margin-top:0;border:0;padding-top:0 }
+.checkoutStep>span { color:#a36d28;font-size:.8rem;font-weight:800;letter-spacing:.08em }
+.checkoutStep h3 { font-size:1.05rem;margin:0 0 2px }
+.checkoutStep p { font-size:.74rem;color:#806d58;line-height:1.6;margin:0 }
+.checkoutFields label { font-size:.79rem;color:#3b2a1c }
+.checkoutFields input,.checkoutFields textarea { background:#fffdf8;border-color:#d8c9b5;min-height:44px }
+.checkoutFields input:focus,.checkoutFields textarea:focus { outline:2px solid #a36d28;outline-offset:1px }
+.checkoutSummary { background:#f0e5d5;padding:16px;margin:22px -8px 16px }
+.checkoutSummary h3 { margin:0 0 10px;font-size:.98rem }
+.summaryLine { display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid #dac9b1;font-size:.79rem }
+.checkoutSummary .cartTotal { margin-top:8px }
+.checkoutTrust { display:flex;justify-content:center;gap:18px;flex-wrap:wrap;padding-top:12px;color:#75634f;font-size:.7rem }
+.checkoutTrust span::before { content:'✓';color:#a36d28;margin-inline-end:5px }
+.orderSuccess>span { background:#a36d28 }
+@media(max-width:700px){.cartDialog{inset:auto 0 0 0;width:100%;height:min(94dvh,850px);max-height:94dvh;border:0;border-radius:14px 14px 0 0}.cartHeading{padding:22px 20px 18px}.cartContent{min-height:calc(94dvh - 88px);padding:14px 20px 22px}.headerCta.cartTrigger>span:not(.cartCount){display:none}.headerCta.cartTrigger{min-width:50px;justify-content:center}}

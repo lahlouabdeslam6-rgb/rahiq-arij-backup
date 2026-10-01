@@ -1,0 +1,15 @@
+:root{color:#281b13;background:#f8f3ea}
+.topbar{background:#281b13;color:#ead0a0}
+.primary{background:#a36d28;border-color:#a36d28;color:#fffdf8}
+.primary:hover{background:#80521e;border-color:#80521e}
+.secondary{background:#fffdf8;border-color:#d8c7ad;color:#3d2b1d}
+.secondary:hover{background:#efe3d1}
+.stats article,.panel{background:#fffdf8;border-color:#e3d6c3}
+.stats article{background:linear-gradient(145deg,#fffdf8,#f6eee1);border-top-color:#a36d28}
+.eyebrow,.stats strong,.visitsSummary strong,.orderTotal strong{color:#93601f}
+.adminNav a{background:#eee2d1;color:#443020}
+.adminNav a:hover,.adminNav a:focus-visible{background:#281b13;color:#fffdf8}
+.adminNav span{background:#a36d28}
+.chartTrack{background:#efe4d3}
+.chartTrack i{background:linear-gradient(#c69b5a,#8b5b24)}
+.loginCard,dialog{background:#fffdf8}
