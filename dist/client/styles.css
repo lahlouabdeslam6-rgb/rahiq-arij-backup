@@ -211,4 +211,38 @@
   .qualityIntro { margin-bottom:25px; }
 }
 
+/* The mobile landscape and jar share the opening composition with the copy. */
+@media(max-width:800px) {
+  .heroLandscape {
+    inset:0;
+    z-index:0;
+    opacity:1;
+    background-image:linear-gradient(90deg,rgba(245,237,221,.67),rgba(245,237,221,.92)),url('/rehamna-landscape.png');
+    background-position:left center;
+  }
+  .heroGrid { position:relative; display:block; min-height:0; z-index:1; }
+  .heroCopy { padding:50px 0 55px; }
+  .heroArt { position:absolute; inset:0; min-height:0; height:auto; z-index:1; pointer-events:none; }
+  .heroArt::before,.heroArt::after,.heroSun,.heroSeal,.heroArtNote { display:none; }
+  .heroJar { position:absolute; top:75px; bottom:auto; left:-25px; width:min(320px,60vw); transform:none; opacity:.35; }
+}
+@media(max-width:560px) {
+  .heroCopy { padding:38px 0 36px; }
+  .heroCopy h1 { font-size:clamp(2.65rem,11vw,3.3rem); }
+  .heroLead { max-width:32ch; }
+  .heroJar { top:65px; width:min(270px,68vw); left:-35px; opacity:.38; }
+}
+
+.productImageButton { background:none; cursor:zoom-in; }
+.productCard .productDetails { cursor:pointer; }
+.detailsDialog { max-height:calc(100dvh - 24px); overflow-y:auto; }
+.detailsMedia { display:flex; justify-content:center; align-items:center; height:225px; margin:-8px -8px 22px; background:radial-gradient(circle,#fff7e8,#eee2cf); }
+.detailsMedia .jarVisual { width:auto; height:215px; }
+.detailsMedia .uploadedImage { width:100%; height:215px; object-fit:contain; }
+@media(max-width:560px) {
+  .detailsDialog { padding:25px; }
+  .detailsMedia { height:195px; }
+  .detailsMedia .jarVisual,.detailsMedia .uploadedImage { height:185px; }
+}
+
 @media(max-width:560px){.productActions{grid-template-columns:1fr}.productActions a{min-height:44px}}.productDetails p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.productActions a.whatsappButton{border-radius:0;padding:10px 7px;font-size:.73rem}.detailsDialog{width:min(510px,calc(100% - 24px));border:1px solid #ddcdb4;background:#fffaf0;color:#2c1d12;padding:35px;box-shadow:0 25px 70px #0005}.detailsDialog::backdrop{background:#1a100bd9}.detailsDialog h2{font-size:2rem}.detailsDialog p{color:#6f5944;line-height:1.9}.detailsDialog strong{display:block;color:#a36a22;font-size:1.5rem;margin:18px 0}.detailsDialog .closeDetails{position:absolute;top:5px;left:12px;font-size:1.8rem;background:none;border:0;color:#2c1d12}.detailsDialog .whatsappButton{display:inline-flex;text-decoration:none}

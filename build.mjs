@@ -1,9 +1,8 @@
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { dirname, join, resolve, sep } from 'node:path'
+import { dirname, join, sep } from 'node:path'
 
 const root = dirname(fileURLToPath(import.meta.url))
-const app = resolve(root, '../rahiq-arij')
 const dist = join(root, 'dist')
 if (!dist.startsWith(root + sep)) throw new Error('Unexpected output path')
 rmSync(dist, { recursive: true, force: true })
@@ -12,12 +11,12 @@ const client = join(dist, 'client')
 mkdirSync(client, { recursive: true })
 mkdirSync(join(dist, 'server'), { recursive: true })
 for (const file of ['brand-logo.png', 'rahiq-signature-jar.png', 'rehamna-landscape.png']) {
-  cpSync(join(app, 'public', file), join(client, file))
+  cpSync(join(root, 'client', 'assets', file), join(client, file))
 }
 cpSync(join(root, '.openai', 'hosting.json'), join(dist, '.openai', 'hosting.json'))
 cpSync(join(root, 'server', 'worker.mjs'), join(dist, 'server', 'index.js'))
 for (const file of ['admin.html', 'admin.css', 'admin.js', 'catalog.js']) cpSync(join(root, 'client', file), join(client, file))
-const css = readFileSync(join(app, 'app', 'page.module.css'), 'utf8')
+const css = readFileSync(join(root, 'client', 'theme.css'), 'utf8')
 writeFileSync(join(client, 'styles.css'), `@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');\n*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Cairo,Arial,sans-serif}button,a{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}button{border:0}h1,h2,h3,p{margin-top:0}.page{--font-heading:Cairo,Arial,sans-serif;--font-body:Cairo,Arial,sans-serif}img{max-width:100%}\n${css}\n@media(max-width:560px){.productActions{grid-template-columns:1fr}.productActions a{min-height:44px}}.productDetails p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.productActions a.whatsappButton{border-radius:0;padding:10px 7px;font-size:.73rem}.detailsDialog{width:min(510px,calc(100% - 24px));border:1px solid #ddcdb4;background:#fffaf0;color:#2c1d12;padding:35px;box-shadow:0 25px 70px #0005}.detailsDialog::backdrop{background:#1a100bd9}.detailsDialog h2{font-size:2rem}.detailsDialog p{color:#6f5944;line-height:1.9}.detailsDialog strong{display:block;color:#a36a22;font-size:1.5rem;margin:18px 0}.detailsDialog .closeDetails{position:absolute;top:5px;left:12px;font-size:1.8rem;background:none;border:0;color:#2c1d12}.detailsDialog .whatsappButton{display:inline-flex;text-decoration:none}`)
 
 const products = [
