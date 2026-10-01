@@ -215,20 +215,24 @@
     inset:0;
     z-index:0;
     opacity:1;
-    background-image:linear-gradient(90deg,rgba(245,237,221,.67),rgba(245,237,221,.92)),url('/rehamna-landscape.png');
+    background-image:linear-gradient(90deg,rgba(245,237,221,.08),rgba(245,237,221,.48)),url('/rehamna-landscape.png');
     background-position:left center;
   }
   .heroGrid { position:relative; display:block; min-height:0; z-index:1; }
   .heroCopy { padding:50px 0 55px; }
   .heroArt { position:absolute; inset:0; min-height:0; height:auto; z-index:1; pointer-events:none; }
   .heroArt::before,.heroArt::after,.heroSun,.heroSeal,.heroArtNote { display:none; }
-  .heroJar { position:absolute; top:75px; bottom:auto; left:-25px; width:min(320px,60vw); transform:none; opacity:.35; }
+  .heroJar { position:absolute; top:75px; bottom:auto; left:-25px; width:min(320px,60vw); transform:none; opacity:.88; }
+  .heroCopy h1 { text-shadow:0 2px 14px #fff8e9,0 0 4px #fff8e9; }
+  .heroCopy .overline { display:table; padding:4px 8px; background:rgba(255,249,237,.84); border-radius:3px; }
+  .heroLead { width:fit-content; padding:6px 10px; background:rgba(255,249,237,.78); border-radius:3px; }
+  .heroProof { width:fit-content; padding:10px; background:rgba(255,249,237,.76); border-radius:3px; }
 }
 @media(max-width:560px) {
   .heroCopy { padding:38px 0 36px; }
   .heroCopy h1 { font-size:clamp(2.65rem,11vw,3.3rem); }
   .heroLead { max-width:32ch; }
-  .heroJar { top:65px; width:min(270px,68vw); left:-35px; opacity:.38; }
+  .heroJar { top:65px; width:min(250px,63vw); left:-42px; opacity:.92; }
 }
 
 .productImageButton { background:none; cursor:zoom-in; }
