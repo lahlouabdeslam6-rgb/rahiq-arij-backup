@@ -26,7 +26,7 @@ fetch('/api/products', { cache: 'no-store' }).then(async response => {
     if (!card) return
     const product = products.find(item => item.id === Number(card.dataset.detail))
     if (!product) return
-    dialog.querySelector('.detailsBody').innerHTML = `<div class="detailsMedia">${productPhoto(product)}</div><h2>${safe(product.name)}</h2><p>${safe(product.description || 'عسل مغربي خام بمذاق أصيل.')}</p><strong>${Number(product.price)} درهم</strong><a class="whatsappButton" href="https://wa.me/212648366622?text=${encodeURIComponent('السلام عليكم، بغيت نستفسر على '+product.name)}" target="_blank" rel="noopener noreferrer">${whatsapp} استفسر عبر واتساب</a>`
+    dialog.querySelector('.detailsBody').innerHTML = `<div class="detailsMedia">${productPhoto(product)}</div><div class="detailsCopy"><h2>${safe(product.name)}</h2><p>${safe(product.description || 'عسل مغربي خام بمذاق أصيل.')}</p><strong>${Number(product.price)} درهم</strong><a class="whatsappButton" href="https://wa.me/212648366622?text=${encodeURIComponent('السلام عليكم، بغيت نستفسر على '+product.name)}" target="_blank" rel="noopener noreferrer">${whatsapp} استفسر عبر واتساب</a></div>`
     dialog.showModal()
   })
 }).catch(() => { grid.innerHTML = '<div class="loading">تعذر تحميل المنتجات حالياً. رجع للموقع بعد شوية أو تواصل معنا عبر واتساب.</div>' })
