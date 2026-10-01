@@ -11,6 +11,8 @@ const dateTime = value => {
   return new Intl.DateTimeFormat('fr-MA', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Casablanca' }).format(new Date(iso))
 }
 let products = []
+let orders = []
+const statusLabels = { NEW: 'جديدة', CONFIRMED: 'مؤكدة', SHIPPED: 'مرسلة', DELIVERED: 'مسلّمة', CANCELLED: 'ملغاة' }
 async function api(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', ...options })
   const data = response.status === 204 ? {} : await response.json().catch(() => ({}))
@@ -25,7 +27,7 @@ function showLogin(message = '') {
 async function showDashboard() {
   $('#loginPanel').hidden = true
   $('#dashboard').hidden = false
-  await Promise.all([loadStats(), loadProducts()])
+  await Promise.all([loadStats(), loadProducts(), loadOrders()])
 }
 async function loadStats() {
   try {
@@ -34,10 +36,33 @@ async function loadStats() {
     $('#visitorsCount').textContent = data.visitors ?? 0
     $('#todayCount').textContent = data.today ?? 0
     $('#productsCount').textContent = data.products ?? 0
+    $('#ordersCount').textContent = data.orders ?? 0
+    $('#newOrdersCount').textContent = data.newOrders ?? 0
+    $('#newOrderBadge').textContent = data.newOrders ?? 0
+    $('#revenueCount').textContent = Number(data.deliveredRevenue || 0).toLocaleString('fr-MA')
+    const days = Array.from({ length: 7 }, (_, index) => {
+      const day = new Date(Date.now() - (6 - index) * 86400000).toISOString().slice(0, 10)
+      return { day, count: Number(data.daily?.find(item => item.day === day)?.orders || 0) }
+    })
+    const max = Math.max(1, ...days.map(item => item.count))
+    $('#ordersChart').innerHTML = days.map(item => `<div class="chartColumn" title="${item.day}: ${item.count} طلب"><span>${item.count}</span><div class="chartTrack"><i style="height:${Math.max(4, item.count / max * 100)}%"></i></div><small>${item.day.slice(5)}</small></div>`).join('')
     $('#recentVisits').innerHTML = data.recent.length ? data.recent.map(row => `<div class="listItem"><span>${escapeHtml(locationName(row.country,row.city))}</span><span>${escapeHtml(dateTime(row.enteredAt))}</span></div>`).join('') : '<p class="empty">مازال ما تسجلات حتى زيارة من بعد تشغيل الإحصائيات.</p>'
     $('#places').innerHTML = data.places.length ? data.places.map(row => `<div class="listItem"><span>${escapeHtml(locationName(row.country,row.city))}</span><strong>${Number(row.visits)} زيارة</strong></div>`).join('') : '<p class="empty">ما كايناش بيانات بعد.</p>'
     $('#globalError').textContent = ''
   } catch (error) { $('#globalError').textContent = error.message }
+}
+async function loadOrders() {
+  try { orders = await api('/api/admin/orders'); renderOrders() }
+  catch (error) { $('#globalError').textContent = error.message }
+}
+function renderOrders() {
+  const filter = $('#orderFilter').value
+  const visible = filter === 'ALL' ? orders : orders.filter(order => order.status === filter)
+  $('#orderList').innerHTML = visible.length ? visible.map(order => `<article class="orderRow"><div><strong dir="ltr">${escapeHtml(order.orderNumber)}</strong><small>${escapeHtml(dateTime(order.createdAt))}</small></div><div><b>${escapeHtml(order.customerName)}</b><small dir="ltr">${escapeHtml(order.phone)}</small></div><div><span>${escapeHtml(order.city)}</span><small>${Number(order.subtotal).toLocaleString('fr-MA')} درهم</small></div><span class="status status-${order.status.toLowerCase()}">${statusLabels[order.status] || order.status}</span><button type="button" data-order="${order.id}" class="secondary">شوف الطلب</button></article>`).join('') : '<p class="empty">ما كاين حتى طلب فهاد الحالة.</p>'
+}
+function openOrder(order) {
+  $('#orderDetails').innerHTML = `<div class="orderMeta"><p><small>رقم الطلب</small><strong dir="ltr">${escapeHtml(order.orderNumber)}</strong></p><p><small>التاريخ</small><strong>${escapeHtml(dateTime(order.createdAt))}</strong></p><p><small>الزبون</small><strong>${escapeHtml(order.customerName)}</strong></p><p><small>الهاتف</small><strong dir="ltr">${escapeHtml(order.phone)}</strong></p><p><small>المدينة</small><strong>${escapeHtml(order.city)}</strong></p><p><small>العنوان</small><strong>${escapeHtml(order.address)}</strong></p>${order.note ? `<p><small>ملاحظة</small><strong>${escapeHtml(order.note)}</strong></p>` : ''}</div><h3>المنتجات</h3><div class="orderItems">${order.items.map(item => `<div><span>${item.quantity} × ${escapeHtml(item.productName)}</span><strong>${Number(item.unitPrice * item.quantity).toLocaleString('fr-MA')} درهم</strong></div>`).join('')}</div><div class="orderTotal"><span>مجموع المنتجات</span><strong>${Number(order.subtotal).toLocaleString('fr-MA')} درهم</strong></div><p class="hint">رسوم التوصيل كتتأكد مع الزبون قبل الإرسال.</p><label>حالة الطلب<select id="orderStatus">${Object.entries(statusLabels).map(([key,label]) => `<option value="${key}" ${key === order.status ? 'selected' : ''}>${label}</option>`).join('')}</select></label><p id="orderError" class="error" role="alert"></p><button type="button" class="primary" id="saveOrderStatus" data-id="${order.id}">حفظ الحالة</button>`
+  $('#orderDialog').showModal()
 }
 async function loadProducts() {
   try {
@@ -85,6 +110,23 @@ $('#loginForm').addEventListener('submit', async event => {
 })
 $('#logoutBtn').addEventListener('click', async () => { await api('/api/admin/logout', { method: 'POST' }).catch(() => {}); showLogin() })
 $('#refreshStats').addEventListener('click', loadStats)
+$('#orderFilter').addEventListener('change', renderOrders)
+$('#orderList').addEventListener('click', event => {
+  const button = event.target.closest('[data-order]')
+  if (button) { const order = orders.find(item => item.id === Number(button.dataset.order)); if (order) openOrder(order) }
+})
+$('#closeOrderDialog').addEventListener('click', () => $('#orderDialog').close())
+$('#orderDetails').addEventListener('click', async event => {
+  const button = event.target.closest('#saveOrderStatus')
+  if (!button) return
+  button.disabled = true
+  try {
+    await api('/api/admin/orders/' + button.dataset.id, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status: $('#orderStatus').value }) })
+    $('#orderDialog').close()
+    await Promise.all([loadOrders(), loadStats()])
+  } catch (error) { $('#orderError').textContent = error.message }
+  finally { button.disabled = false }
+})
 $('#addProduct').addEventListener('click', () => openProduct(null))
 $('#closeDialog').addEventListener('click', () => $('#productDialog').close())
 $('#cancelDialog').addEventListener('click', () => $('#productDialog').close())

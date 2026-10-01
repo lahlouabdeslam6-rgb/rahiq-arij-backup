@@ -34,6 +34,10 @@ function setup(env) {
     await env.DB.prepare('CREATE INDEX IF NOT EXISTS visits_entered_idx ON visits(entered_at)').run()
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT)').run()
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS login_attempts (visitor_hash TEXT PRIMARY KEY, count INTEGER NOT NULL, first_at INTEGER NOT NULL)').run()
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY AUTOINCREMENT, order_number TEXT NOT NULL UNIQUE, customer_name TEXT NOT NULL, phone TEXT NOT NULL, city TEXT NOT NULL, address TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', subtotal REAL NOT NULL, status TEXT NOT NULL DEFAULT 'NEW', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run()
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS order_items (id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER NOT NULL, product_id INTEGER, product_name TEXT NOT NULL, quantity INTEGER NOT NULL, unit_price REAL NOT NULL, FOREIGN KEY(order_id) REFERENCES orders(id))').run()
+    await env.DB.prepare('CREATE INDEX IF NOT EXISTS orders_created_idx ON orders(created_at)').run()
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS order_attempts (visitor_hash TEXT PRIMARY KEY, count INTEGER NOT NULL, first_at INTEGER NOT NULL)').run()
     const seeded = await env.DB.prepare("SELECT value FROM app_meta WHERE key='seeded'").first()
     if (!seeded) {
       for (const p of initialProducts) {
@@ -129,6 +133,45 @@ export default {
         if (!recent) await env.DB.prepare('INSERT INTO visits(session_id,country,city) VALUES (?,?,?)').bind(body.sessionId, country, city).run()
         return new Response(null, { status: 204 })
       }
+      if (path === '/api/orders' && method === 'POST') {
+        if (!sameOrigin(request)) return json({ error: 'Forbidden' }, 403)
+        const body = await bodyJson(request)
+        if (body?.website) return json({ error: 'طلب غير صالح' }, 400)
+        const name = typeof body?.customerName === 'string' ? body.customerName.trim() : ''
+        const phone = typeof body?.phone === 'string' ? body.phone.replace(/[\s().-]/g, '') : ''
+        const city = typeof body?.city === 'string' ? body.city.trim() : ''
+        const address = typeof body?.address === 'string' ? body.address.trim() : ''
+        const note = typeof body?.note === 'string' ? body.note.trim() : ''
+        const items = body?.items
+        if (name.length < 2 || name.length > 100 || !/^(?:\+212|0)[5-7]\d{8}$/.test(phone) || city.length < 2 || city.length > 100 || address.length < 5 || address.length > 300 || note.length > 300 || !Array.isArray(items) || !items.length || items.length > 30 || items.some(item => !Number.isSafeInteger(item?.productId) || !Number.isSafeInteger(item?.quantity) || item.quantity < 1 || item.quantity > 20)) return json({ error: 'راجع معلومات الطلب ورقم الهاتف والكميات' }, 400)
+        const quantities = new Map()
+        for (const item of items) quantities.set(item.productId, (quantities.get(item.productId) || 0) + item.quantity)
+        if ([...quantities.values()].some(quantity => quantity > 20)) return json({ error: 'الحد الأقصى 20 من كل منتج' }, 400)
+        await setup(env)
+        const visitorHash = await hmac(env.SESSION_SECRET, request.headers.get('cf-connecting-ip') || 'unknown')
+        const now = Math.floor(Date.now() / 1000)
+        const attempt = await env.DB.prepare('SELECT count,first_at FROM order_attempts WHERE visitor_hash=?').bind(visitorHash).first()
+        if (attempt && now - attempt.first_at < 600 && attempt.count >= 5) return json({ error: 'وصلات طلبات كثيرة. حاول من بعد شوية.' }, 429)
+        const products = []
+        for (const [id, quantity] of quantities) {
+          const product = await env.DB.prepare('SELECT id,name,price FROM products WHERE id=?').bind(id).first()
+          if (!product) return json({ error: 'شي منتج ما بقاش متوفر. جدّد الصفحة.' }, 409)
+          products.push({ ...product, quantity })
+        }
+        const subtotal = Math.round(products.reduce((sum, product) => sum + product.price * product.quantity, 0) * 100) / 100
+        const orderNumber = `RA-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+        const result = await env.DB.prepare('INSERT INTO orders(order_number,customer_name,phone,city,address,note,subtotal) VALUES (?,?,?,?,?,?,?)').bind(orderNumber,name,phone,city,address,note,subtotal).run()
+        try {
+          for (const product of products) await env.DB.prepare('INSERT INTO order_items(order_id,product_id,product_name,quantity,unit_price) VALUES (?,?,?,?,?)').bind(result.meta.last_row_id,product.id,product.name,product.quantity,product.price).run()
+        } catch (error) {
+          await env.DB.prepare('DELETE FROM order_items WHERE order_id=?').bind(result.meta.last_row_id).run()
+          await env.DB.prepare('DELETE FROM orders WHERE id=?').bind(result.meta.last_row_id).run()
+          throw error
+        }
+        if (!attempt || now - attempt.first_at >= 600) await env.DB.prepare('INSERT INTO order_attempts(visitor_hash,count,first_at) VALUES (?,1,?) ON CONFLICT(visitor_hash) DO UPDATE SET count=1,first_at=excluded.first_at').bind(visitorHash,now).run()
+        else await env.DB.prepare('UPDATE order_attempts SET count=count+1 WHERE visitor_hash=?').bind(visitorHash).run()
+        return json({ orderNumber, subtotal, status: 'NEW' }, 201)
+      }
       if (path === '/api/admin/login' && method === 'POST') {
         if (!sameOrigin(request)) return json({ error: 'Forbidden' }, 403)
         if (!env.ADMIN_PASSWORD || !env.SESSION_SECRET || env.SESSION_SECRET.length < 32) return json({ error: 'Admin is not configured' }, 503)
@@ -159,12 +202,24 @@ export default {
         if (!await authorized(request, env)) return json({ error: 'غير مصرح' }, 401)
         await setup(env)
         if (path === '/api/admin/stats' && method === 'GET') {
-          const [counts, recent, places] = await Promise.all([
-            env.DB.prepare("SELECT (SELECT COUNT(*) FROM visits) AS visits,(SELECT COUNT(DISTINCT session_id) FROM visits) AS visitors,(SELECT COUNT(*) FROM visits WHERE date(entered_at)=date('now')) AS today,(SELECT COUNT(*) FROM products) AS products").first(),
+          const [counts, recent, places, daily] = await Promise.all([
+            env.DB.prepare("SELECT (SELECT COUNT(*) FROM visits) AS visits,(SELECT COUNT(DISTINCT session_id) FROM visits) AS visitors,(SELECT COUNT(*) FROM visits WHERE date(entered_at)=date('now')) AS today,(SELECT COUNT(*) FROM products) AS products,(SELECT COUNT(*) FROM orders) AS orders,(SELECT COUNT(*) FROM orders WHERE status='NEW') AS newOrders,(SELECT COALESCE(SUM(subtotal),0) FROM orders WHERE status='DELIVERED') AS deliveredRevenue").first(),
             env.DB.prepare('SELECT country,city,entered_at AS enteredAt FROM visits ORDER BY id DESC LIMIT 20').all(),
             env.DB.prepare("SELECT country,city,COUNT(*) AS visits FROM visits GROUP BY country,city ORDER BY visits DESC LIMIT 10").all(),
+            env.DB.prepare("SELECT date(created_at) AS day,COUNT(*) AS orders FROM orders WHERE created_at >= datetime('now','-6 days') GROUP BY date(created_at) ORDER BY day").all(),
           ])
-          return json({ ...counts, recent: recent.results || [], places: places.results || [] })
+          return json({ ...counts, recent: recent.results || [], places: places.results || [], daily: daily.results || [] })
+        }
+        if (path === '/api/admin/orders' && method === 'GET') {
+          const [orders, items] = await Promise.all([env.DB.prepare('SELECT id,order_number AS orderNumber,customer_name AS customerName,phone,city,address,note,subtotal,status,created_at AS createdAt FROM orders ORDER BY id DESC LIMIT 200').all(),env.DB.prepare('SELECT order_id AS orderId,product_name AS productName,quantity,unit_price AS unitPrice FROM order_items WHERE order_id IN (SELECT id FROM orders ORDER BY id DESC LIMIT 200)').all()])
+          return json((orders.results || []).map(order => ({ ...order, items: (items.results || []).filter(item => item.orderId === order.id) })))
+        }
+        const orderMatch = path.match(/^\/api\/admin\/orders\/(\d+)$/)
+        if (orderMatch && method === 'PATCH') {
+          const body = await bodyJson(request)
+          if (!['NEW','CONFIRMED','SHIPPED','DELIVERED','CANCELLED'].includes(body?.status)) return json({ error: 'حالة غير صالحة' }, 400)
+          const result = await env.DB.prepare('UPDATE orders SET status=? WHERE id=?').bind(body.status,Number(orderMatch[1])).run()
+          return result.meta.changes ? json({ ok: true }) : json({ error: 'الطلب غير موجود' }, 404)
         }
         if (path === '/api/admin/upload' && method === 'POST') {
           if (!env.IMAGES) return json({ error: 'Image storage unavailable' }, 503)

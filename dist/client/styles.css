@@ -318,6 +318,49 @@
   line-height:1;
 }
 .detailsDialog .closeDetails svg { display:block; width:19px; height:19px; }
+.addCartButton,.cartTrigger,.checkoutStart,.checkoutSubmit,.cartContinue { background:#2b2018;color:#fff;border:1px solid #2b2018;padding:13px 20px;min-height:48px;font-weight:700;transition:background .2s,transform .2s }
+.addCartButton:hover,.cartTrigger:hover,.checkoutStart:hover,.checkoutSubmit:hover,.cartContinue:hover { background:#9e6c29;transform:translateY(-1px) }
+.productActions { display:block }
+.productActions .addCartButton { width:100%;font-size:.9rem }
+.detailsCopy .addCartButton { min-width:200px }
+.headerCta.cartTrigger { background:#2b2018;color:#fff;display:inline-flex;align-items:center;gap:8px;justify-content:center;border-radius:0 }
+.cartCount { display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border-radius:50%;background:#c4944a;color:#20150e;font-size:.72rem }
+.cartCount[hidden] { display:none }
+.socialActions .cartTrigger { min-width:185px }
+.floatingCart { position:fixed;bottom:22px;left:22px;z-index:20;display:inline-flex;align-items:center;gap:8px;padding:12px 18px;background:#2b2018;color:#fff;border:1px solid #d6a85a;box-shadow:0 12px 30px #0004;border-radius:100px;font-weight:800 }
+.cartDialog { width:min(520px,calc(100% - 18px));max-height:calc(100dvh - 20px);margin:auto 0 auto auto;padding:0;border:0;background:#fffaf0;color:#2b2018;box-shadow:0 22px 70px #0007;overflow-y:auto }
+.cartDialog::backdrop { background:#1a100bc9 }
+.cartHeading { display:flex;align-items:start;justify-content:space-between;gap:14px;padding:25px 27px;border-bottom:1px solid #e6d6bd }
+.cartHeading span { color:#9e6c29;font-size:.65rem;letter-spacing:.17em }
+.cartHeading h2 { font-size:1.65rem;margin:5px 0 0 }
+.cartClose { background:none;color:#2b2018;font-size:2rem;line-height:1 }
+.cartContent { padding:24px 27px 28px }
+.cartEmpty { text-align:center;color:#6f5944;padding:40px 8px }
+.cartContinue,.checkoutStart,.checkoutSubmit { width:100% }
+.cartLine { display:grid;grid-template-columns:75px minmax(0,1fr) auto;gap:13px;align-items:center;border-bottom:1px solid #e6d6bd;padding:14px 0 }
+.cartThumb { width:75px;height:85px;background:#f0e3cb;overflow:hidden }
+.cartThumb .jarVisual,.cartThumb .uploadedImage { width:100%;height:100%;object-fit:contain }
+.cartLine strong,.cartLine small { display:block }
+.cartLine small { color:#7d6549;font-size:.76rem }
+.cartLine b { white-space:nowrap;font-size:.8rem;color:#9e6c29 }
+.quantity { display:inline-flex;align-items:center;border:1px solid #ddc9aa;margin-top:9px }
+.quantity button { width:30px;height:30px;background:#fff4df;color:#2b2018 }
+.quantity span { min-width:28px;text-align:center }
+.cartTotal { display:flex;justify-content:space-between;gap:12px;border-top:1px solid #d9bf99;padding:16px 0 8px;margin-top:18px }
+.cartTotal strong { color:#9e6c29 }
+.cartNote,.checkoutIntro { color:#6f5944;font-size:.84rem;line-height:1.8 }
+.checkoutFields label { display:block;margin:12px 0;font-weight:700;font-size:.8rem }
+.checkoutFields input,.checkoutFields textarea { display:block;width:100%;margin-top:5px;padding:10px 12px;border:1px solid #dac8aa;background:#fff;border-radius:3px;color:#2b2018;font:inherit }
+.checkoutFields textarea { min-height:70px;resize:vertical }
+.websiteField { position:absolute!important;left:-9999px!important }
+.checkoutError { color:#a32323;min-height:1em }
+.checkoutSubmit:disabled { opacity:.6;cursor:wait }
+.backToCart { display:block;margin:12px auto 0;background:none;color:#755a3a;text-decoration:underline }
+.orderSuccess { text-align:center;padding:30px 4px }
+.orderSuccess>span { display:grid;place-items:center;width:60px;height:60px;border-radius:50%;background:#14884b;color:white;font-size:2rem;margin:0 auto 18px }
+.orderSuccess h3 { font-size:1.6rem }
+.orderSuccess p { color:#6f5944;line-height:1.8 }
+.orderSuccess .cartContinue { margin-top:18px }
 @media(max-width:700px) {
   .detailsDialog { width:calc(100% - 20px); max-height:calc(100dvh - 20px); }
   .detailsBody { display:block; min-height:0; }
@@ -327,4 +370,6 @@
   .detailsCopy h2 { font-size:1.8rem; margin-bottom:13px; }
   .detailsCopy p { font-size:.9rem; }
   .detailsCopy strong { font-size:1.5rem; margin:15px 0 20px; }
+  .cartDialog { width:100%;max-width:100%;max-height:94dvh;margin:auto 0 0;border-radius:14px 14px 0 0 }
+  .floatingCart { bottom:14px;left:14px }
 }
