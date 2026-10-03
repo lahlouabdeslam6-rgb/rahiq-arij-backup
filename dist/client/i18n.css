@@ -1,0 +1,38 @@
+.langToggle{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:46px;min-height:42px;padding:6px 11px;border:1px solid #b89055;border-radius:3px;background:transparent;color:#6b471f;font-size:.78rem;font-weight:800;letter-spacing:.06em}
+.langToggle:hover,.langToggle:focus-visible{background:#a36d28;color:#fff;outline-offset:3px}
+.topbarActions{display:flex;align-items:center;gap:18px}
+.topbarActions .langToggle{border-color:#b88b4f;color:#efd6a1}
+.topbarActions .langToggle:hover,.topbarActions .langToggle:focus-visible{color:#fff}
+.topbarActions>a{font-size:.82rem}
+html[lang="fr"] body{font-family:Arial,Helvetica,sans-serif}
+html[lang="fr"] .page{--font-heading:Arial,Helvetica,sans-serif;--font-body:Arial,Helvetica,sans-serif}
+html[lang="fr"] .heroCopy h1{font-size:clamp(2.75rem,4.1vw,4.65rem);line-height:1.12;letter-spacing:-.045em}
+html[lang="fr"] .productIndex,html[lang="fr"] .productArt .productIndex{left:12px;right:auto;text-align:left}
+html[lang="fr"] .productMockupNote{left:auto;right:12px}
+html[lang="fr"] .productNameButton{text-align:left}
+html[lang="fr"] .detailsBody{direction:rtl}
+html[lang="fr"] .detailsCopy{direction:ltr;text-align:left}
+html[lang="fr"] .detailsDialog .closeDetails{left:auto;right:14px}
+html[lang="fr"] .floatingCart{left:22px;right:auto}
+html[lang="fr"] .floatingCart .cartCount{left:-7px;right:auto}
+html[lang="fr"] .cartDialog{inset:0 auto 0 0;margin:0 auto 0 0;border-left:0;border-right:1px solid #ddcbb1}
+html[lang="fr"] .cartNotice{left:22px;right:auto}
+html[lang="fr"] .cta.contact{text-align:left}
+html[lang="fr"] .contactBrand{border-left:0;border-right:1px solid #9c774d66;padding-left:0;padding-right:clamp(25px,4vw,60px)}
+html[lang="fr"] .heroSeal{right:auto;left:2%}
+html[lang="fr"] .storyImage>div{right:auto;left:28px}
+html[lang="fr"] .storyTimeline strong{text-align:left}
+html[lang="fr"] .qualityGrid>div{border-left:0;border-right:1px solid #d8c5a6}
+html[lang="fr"] .qualityGrid>div:last-child{border-right:0}
+html[lang="fr"] .productRow,html[lang="fr"] form label{text-align:left}
+html[lang="fr"] .adminNav a{border-right:0;border-left:2px solid transparent}
+html[lang="fr"] .adminNav a:hover,html[lang="fr"] .adminNav a:focus-visible,html[lang="fr"] .adminNav a.active{border-right:0;border-left-color:#c79750}
+html[lang="fr"] .visitNotice{border-right:0;border-left:3px solid #b8833b}
+html[lang="fr"] .listItem span:last-child{direction:ltr}
+@media(max-width:800px){html[lang="fr"] .heroJar{left:auto;right:-25px}html[lang="fr"] .qualityGrid>div{border-right:0}}
+@media(max-width:760px){html[lang="fr"] .contactBrand{border-right:0;padding-right:0}}
+@media(max-width:700px){html[lang="fr"] .cartDialog{inset:auto 0 0 0;margin:auto 0 0;border:0}html[lang="fr"] .floatingCart{left:8px;right:auto}html[lang="fr"] .cartNotice{left:10px}html[lang="fr"] .adminNav a,html[lang="fr"] .adminNav a.active{border-left:0}html[lang="fr"] .adminNav a.active{border-bottom-color:#c79750}}
+@media(max-width:560px){.langToggle{min-width:40px;min-height:40px;padding:5px 8px}.topbarActions{gap:10px}html[lang="fr"] .heroJar{left:auto;right:-42px;opacity:1}html[lang="fr"] .heroCopy h1{font-size:clamp(2.35rem,9vw,3.2rem);line-height:1.14;display:table;max-width:100%;padding:9px 12px;margin-left:-12px;background:linear-gradient(90deg,rgba(250,244,231,.93),rgba(250,244,231,.72) 55%,rgba(250,244,231,.42));border-left:3px solid #b4813d;text-shadow:0 1px 5px #fffaf0}html[lang="fr"] .navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 10px}html[lang="fr"] .navigation a{min-width:0;white-space:nowrap;text-align:left;font-size:.7rem}html[lang="fr"] .productsGrid{grid-template-columns:1fr}html[lang="fr"] .productArt{min-height:285px}html[lang="fr"] .productImageButton{height:265px}html[lang="fr"] .productArt .productIndex{left:8px;right:auto}html[lang="fr"] .productMeta .addCartButton{font-size:.82rem;padding:8px 13px}}
+@media(max-width:560px){html[lang="fr"] .heroCopy h1{font-size:clamp(1.95rem,7.8vw,2.35rem);line-height:1.13;padding:7px 9px;margin-left:-9px}html[lang="fr"] .heroLead{max-width:100%;line-height:1.6}}
+@media(max-width:560px){html[lang="fr"] .heroCopy h1{display:block;background:none;border-left:0;padding:0;margin-left:0}}
+@media(max-width:700px){html[lang="fr"] .floatingCart{left:max(14px,env(safe-area-inset-left));right:auto}}
