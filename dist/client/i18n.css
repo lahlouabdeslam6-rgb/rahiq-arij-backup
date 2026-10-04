@@ -1,5 +1,16 @@
 .langToggle{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:46px;min-height:42px;padding:6px 11px;border:1px solid #b89055;border-radius:3px;background:transparent;color:#6b471f;font-size:.78rem;font-weight:800;letter-spacing:.06em}
 .langToggle:hover,.langToggle:focus-visible{background:#a36d28;color:#fff;outline-offset:3px}
+@media(min-width:801px){
+  .header .shell{display:grid;grid-template-columns:minmax(0,1fr) 68px minmax(0,1.7fr) minmax(0,1fr);column-gap:30px;direction:ltr}
+  .header .shell>*{grid-row:1;direction:rtl}
+  .header .brand{grid-column:4;justify-self:end}
+  .header .navigation{grid-column:3;justify-self:center}
+  .header .langToggle{grid-column:2;justify-self:center}
+  .header .headerCta{grid-column:1;justify-self:start}
+  html[lang="fr"] .header .shell>*{direction:ltr}
+  html[lang="fr"] .header .brand{grid-column:1;justify-self:start}
+  html[lang="fr"] .header .headerCta{grid-column:4;justify-self:end}
+}
 .topbarActions{display:flex;align-items:center;gap:18px}
 .topbarActions .langToggle{border-color:#b88b4f;color:#efd6a1}
 .topbarActions .langToggle:hover,.topbarActions .langToggle:focus-visible{color:#fff}
