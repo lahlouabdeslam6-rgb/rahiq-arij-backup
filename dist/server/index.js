@@ -43,6 +43,7 @@ function setup(env) {
     const productColumns = (await env.DB.prepare('PRAGMA table_info(products)').all()).results || []
     if (!productColumns.some(column => column.name === 'name_fr')) await env.DB.prepare("ALTER TABLE products ADD COLUMN name_fr TEXT NOT NULL DEFAULT ''").run()
     if (!productColumns.some(column => column.name === 'description_fr')) await env.DB.prepare("ALTER TABLE products ADD COLUMN description_fr TEXT NOT NULL DEFAULT ''").run()
+    if (!productColumns.some(column => column.name === 'weight_g')) await env.DB.prepare('ALTER TABLE products ADD COLUMN weight_g INTEGER NOT NULL DEFAULT 1000').run()
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL, country TEXT, city TEXT, entered_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)').run()
     await env.DB.prepare('CREATE INDEX IF NOT EXISTS visits_entered_idx ON visits(entered_at)').run()
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT)').run()
@@ -51,6 +52,7 @@ function setup(env) {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS order_items (id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER NOT NULL, product_id INTEGER, product_name TEXT NOT NULL, quantity INTEGER NOT NULL, unit_price REAL NOT NULL, FOREIGN KEY(order_id) REFERENCES orders(id))').run()
     const itemColumns = (await env.DB.prepare('PRAGMA table_info(order_items)').all()).results || []
     if (!itemColumns.some(column => column.name === 'product_name_fr')) await env.DB.prepare("ALTER TABLE order_items ADD COLUMN product_name_fr TEXT NOT NULL DEFAULT ''").run()
+    if (!itemColumns.some(column => column.name === 'weight_g')) await env.DB.prepare('ALTER TABLE order_items ADD COLUMN weight_g INTEGER NOT NULL DEFAULT 1000').run()
     await env.DB.prepare('CREATE INDEX IF NOT EXISTS orders_created_idx ON orders(created_at)').run()
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS order_attempts (visitor_hash TEXT PRIMARY KEY, count INTEGER NOT NULL, first_at INTEGER NOT NULL)').run()
     const seeded = await env.DB.prepare("SELECT value FROM app_meta WHERE key='seeded'").first()
@@ -110,10 +112,11 @@ function validProduct(body) {
   const description = typeof body?.description === 'string' ? body.description.trim() : ''
   const descriptionFr = typeof body?.descriptionFr === 'string' ? body.descriptionFr.trim() : ''
   const price = Number(body?.price)
+  const weightGrams = body?.weightGrams === undefined ? 1000 : Number(body.weightGrams)
   const imageKey = body?.imageKey || null
   const tone = body?.tone || 'rehamna'
-  if (!name || name.length > 100 || !nameFr || nameFr.length > 100 || description.length > 600 || descriptionFr.length > 600 || !Number.isFinite(price) || price <= 0 || price > 100000 || (imageKey && !/^[a-f0-9-]{36}\.(png|jpg|webp)$/.test(imageKey)) || !['clover','sidr','eucalyptus','rehamna','carob','fernan','daghmous','lemon'].includes(tone)) return null
-  return { name, nameFr, price, description, descriptionFr, imageKey, tone }
+  if (!name || name.length > 100 || !nameFr || nameFr.length > 100 || description.length > 600 || descriptionFr.length > 600 || !Number.isFinite(price) || price <= 0 || price > 100000 || !Number.isSafeInteger(weightGrams) || weightGrams < 1 || weightGrams > 100000 || (imageKey && !/^[a-f0-9-]{36}\.(png|jpg|webp)$/.test(imageKey)) || !['clover','sidr','eucalyptus','rehamna','carob','fernan','daghmous','lemon'].includes(tone)) return null
+  return { name, nameFr, price, weightGrams, description, descriptionFr, imageKey, tone }
 }
 async function bodyJson(request) {
   if (Number(request.headers.get('content-length')) > 10000) return null
@@ -139,7 +142,7 @@ export default {
       if (/^\/admin(?:\/(?:overview|orders|products|visitors))?\/?$/.test(path)) return clientAsset(request, env, '/admin.html')
       if (path === '/api/products' && method === 'GET') {
         await setup(env)
-        const rows = await env.DB.prepare('SELECT id,name,name_fr AS nameFr,price,description,description_fr AS descriptionFr,image_key AS imageKey,tone FROM products ORDER BY id').all()
+        const rows = await env.DB.prepare('SELECT id,name,name_fr AS nameFr,price,weight_g AS weightGrams,description,description_fr AS descriptionFr,image_key AS imageKey,tone FROM products ORDER BY id').all()
         return json(rows.results || [])
       }
       if (path === '/api/visit' && method === 'POST') {
@@ -178,7 +181,7 @@ export default {
         if (attempt && now - attempt.first_at < 600 && attempt.count >= 5) return json({ error: 'وصلات طلبات كثيرة. حاول من بعد شوية.' }, 429)
         const products = []
         for (const [id, quantity] of quantities) {
-          const product = await env.DB.prepare('SELECT id,name,name_fr AS nameFr,price FROM products WHERE id=?').bind(id).first()
+          const product = await env.DB.prepare('SELECT id,name,name_fr AS nameFr,price,weight_g AS weightGrams FROM products WHERE id=?').bind(id).first()
           if (!product) return json({ error: 'شي منتج ما بقاش متوفر. جدّد الصفحة.' }, 409)
           products.push({ ...product, quantity })
         }
@@ -186,7 +189,7 @@ export default {
         const orderNumber = `RA-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
         const result = await env.DB.prepare('INSERT INTO orders(order_number,customer_name,phone,city,address,note,subtotal) VALUES (?,?,?,?,?,?,?)').bind(orderNumber,name,phone,city,address,note,subtotal).run()
         try {
-          for (const product of products) await env.DB.prepare('INSERT INTO order_items(order_id,product_id,product_name,product_name_fr,quantity,unit_price) VALUES (?,?,?,?,?,?)').bind(result.meta.last_row_id,product.id,product.name,product.nameFr || '',product.quantity,product.price).run()
+          for (const product of products) await env.DB.prepare('INSERT INTO order_items(order_id,product_id,product_name,product_name_fr,quantity,unit_price,weight_g) VALUES (?,?,?,?,?,?,?)').bind(result.meta.last_row_id,product.id,product.name,product.nameFr || '',product.quantity,product.price,product.weightGrams).run()
         } catch (error) {
           await env.DB.prepare('DELETE FROM order_items WHERE order_id=?').bind(result.meta.last_row_id).run()
           await env.DB.prepare('DELETE FROM orders WHERE id=?').bind(result.meta.last_row_id).run()
@@ -235,7 +238,7 @@ export default {
           return json({ ...counts, recent: recent.results || [], places: places.results || [], daily: daily.results || [] })
         }
         if (path === '/api/admin/orders' && method === 'GET') {
-          const [orders, items] = await Promise.all([env.DB.prepare('SELECT id,order_number AS orderNumber,customer_name AS customerName,phone,city,address,note,subtotal,status,created_at AS createdAt FROM orders ORDER BY id DESC LIMIT 200').all(),env.DB.prepare('SELECT order_id AS orderId,product_name AS productName,product_name_fr AS productNameFr,quantity,unit_price AS unitPrice FROM order_items WHERE order_id IN (SELECT id FROM orders ORDER BY id DESC LIMIT 200)').all()])
+          const [orders, items] = await Promise.all([env.DB.prepare('SELECT id,order_number AS orderNumber,customer_name AS customerName,phone,city,address,note,subtotal,status,created_at AS createdAt FROM orders ORDER BY id DESC LIMIT 200').all(),env.DB.prepare('SELECT order_id AS orderId,product_name AS productName,product_name_fr AS productNameFr,quantity,unit_price AS unitPrice,weight_g AS weightGrams FROM order_items WHERE order_id IN (SELECT id FROM orders ORDER BY id DESC LIMIT 200)').all()])
           return json((orders.results || []).map(order => ({ ...order, items: (items.results || []).filter(item => item.orderId === order.id) })))
         }
         const orderMatch = path.match(/^\/api\/admin\/orders\/(\d+)$/)
@@ -258,14 +261,14 @@ export default {
         if (path === '/api/products' && method === 'POST') {
           const product = validProduct(await bodyJson(request))
           if (!product) return json({ error: 'بيانات المنتج غير صالحة' }, 400)
-          const result = await env.DB.prepare('INSERT INTO products(name,name_fr,price,description,description_fr,image_key,tone) VALUES (?,?,?,?,?,?,?)').bind(product.name,product.nameFr,product.price,product.description,product.descriptionFr,product.imageKey,product.tone).run()
+          const result = await env.DB.prepare('INSERT INTO products(name,name_fr,price,weight_g,description,description_fr,image_key,tone) VALUES (?,?,?,?,?,?,?,?)').bind(product.name,product.nameFr,product.price,product.weightGrams,product.description,product.descriptionFr,product.imageKey,product.tone).run()
           return json({ ...product, id: result.meta.last_row_id }, 201)
         }
         const match = path.match(/^\/api\/products\/(\d+)$/)
         if (match && method === 'PUT') {
           const product = validProduct(await bodyJson(request))
           if (!product) return json({ error: 'بيانات المنتج غير صالحة' }, 400)
-          const result = await env.DB.prepare('UPDATE products SET name=?,name_fr=?,price=?,description=?,description_fr=?,image_key=?,tone=? WHERE id=?').bind(product.name,product.nameFr,product.price,product.description,product.descriptionFr,product.imageKey,product.tone,Number(match[1])).run()
+          const result = await env.DB.prepare('UPDATE products SET name=?,name_fr=?,price=?,weight_g=?,description=?,description_fr=?,image_key=?,tone=? WHERE id=?').bind(product.name,product.nameFr,product.price,product.weightGrams,product.description,product.descriptionFr,product.imageKey,product.tone,Number(match[1])).run()
           return result.meta.changes ? json({ ...product, id: Number(match[1]) }) : json({ error: 'المنتج غير موجود' }, 404)
         }
         if (match && method === 'DELETE') {

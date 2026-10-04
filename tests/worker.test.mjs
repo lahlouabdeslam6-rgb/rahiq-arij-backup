@@ -42,6 +42,7 @@ test('admin login protects edits while visits and product changes persist', asyn
   assert.equal(initial.status, 200)
   const initialProducts = await initial.json()
   assert.equal(initialProducts.length, 8)
+  assert.ok(initialProducts.every(product => product.weightGrams === 1000))
   assert.ok(initialProducts[2].description.length > 100)
   assert.equal(initialProducts[2].nameFr, 'Miel d’eucalyptus')
   assert.ok(initialProducts[2].descriptionFr.length > 40)
@@ -64,10 +65,11 @@ test('admin login protects edits while visits and product changes persist', asyn
   const stats = await worker.fetch(request('/api/admin/stats', 'GET', undefined, cookie), env)
   assert.equal((await stats.json()).visits, 1)
 
-  const update = await worker.fetch(request('/api/products/1', 'PUT', { name: 'عسل الفصة', nameFr: 'Miel de luzerne', price: 125, description: 'وصف جديد', descriptionFr: 'Nouvelle description', tone: 'clover' }, cookie), env)
+  const update = await worker.fetch(request('/api/products/1', 'PUT', { name: 'عسل الفصة', nameFr: 'Miel de luzerne', price: 125, weightGrams: 500, description: 'وصف جديد', descriptionFr: 'Nouvelle description', tone: 'clover' }, cookie), env)
   assert.equal(update.status, 200)
   const changed = (await (await worker.fetch(request('/api/products'), env)).json())[0]
   assert.equal(changed.price, 125)
+  assert.equal(changed.weightGrams, 500)
   assert.equal(changed.description, 'وصف جديد')
   assert.equal(changed.descriptionFr, 'Nouvelle description')
 
@@ -80,6 +82,10 @@ test('admin login protects edits while visits and product changes persist', asyn
   assert.equal(catalogue.length, 9)
   assert.equal(catalogue.at(-1).name, 'عسل جديد')
   assert.equal(catalogue.at(-1).nameFr, 'Nouveau miel')
+  assert.equal(catalogue.at(-1).weightGrams, 1000)
+
+  const invalidWeight = await worker.fetch(request('/api/products', 'POST', { name: 'عسل جديد', nameFr: 'Nouveau miel', price: 180, weightGrams: 0, tone: 'lemon' }, cookie), env)
+  assert.equal(invalidWeight.status, 400)
 
   const form = new FormData()
   form.append('image', new File([new Uint8Array([137, 80, 78, 71])], 'photo.png', { type: 'image/png' }))
@@ -108,6 +114,7 @@ test('checkout stores server-priced orders and admin can manage their status', a
   assert.equal(order.city, 'Marrakech')
   assert.equal(order.items[0].quantity, 2)
   assert.equal(order.items[0].productNameFr, 'Miel de luzerne')
+  assert.equal(order.items[0].weightGrams, 500)
   const changed = await worker.fetch(request('/api/admin/orders/' + order.id, 'PATCH', { status: 'DELIVERED' }, cookie), env)
   assert.equal(changed.status, 200)
   const stats = await (await worker.fetch(request('/api/admin/stats', 'GET', undefined, cookie), env)).json()

@@ -3,6 +3,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character =>
 const i18n = window.rahiqI18n
 const tr = value => i18n.translate(value)
 const nameOf = product => i18n.lang === 'fr' ? (product.nameFr || product.name) : product.name
+const weightOf = product => { const grams = Number(product.weightGrams) || 1000; return grams >= 1000 ? `${Number((grams / 1000).toFixed(3))}kg` : `${grams}g` }
 const priceOf = value => `${Number(value).toLocaleString(i18n.lang === 'fr' ? 'fr-MA' : 'ar-MA')} ${tr('درهم')}`
 const locationName = (country, city) => {
   let name = country || tr('غير محدد')
@@ -86,14 +87,14 @@ function renderOrders() {
   $('#overviewOrders').innerHTML = orders.length ? orders.slice(0, 4).map(order => `<div class="overviewOrder"><div><strong dir="ltr">${escapeHtml(order.orderNumber)}</strong><small>${escapeHtml(dateTime(order.createdAt))}</small></div><div><b>${escapeHtml(order.customerName)}</b><small>${escapeHtml(order.city)}</small></div><strong>${Number(order.subtotal).toLocaleString('fr-MA')} درهم</strong><span class="status status-${order.status.toLowerCase()}">${statusLabels[order.status] || order.status}</span></div>`).join('') : '<p class="empty">مازال ما كاين حتى طلب. الطلبات الجديدة غادي تبان هنا.</p>'
 }
 function openOrder(order) {
-  $('#orderDetails').innerHTML = `<div class="orderMeta"><p><small>رقم الطلب</small><strong dir="ltr">${escapeHtml(order.orderNumber)}</strong></p><p><small>التاريخ</small><strong>${escapeHtml(dateTime(order.createdAt))}</strong></p><p><small>الزبون</small><strong>${escapeHtml(order.customerName)}</strong></p><p><small>الهاتف</small><strong dir="ltr">${escapeHtml(order.phone)}</strong></p><p><small>المدينة</small><strong>${escapeHtml(order.city)}</strong></p><p><small>العنوان</small><strong>${escapeHtml(order.address)}</strong></p>${order.note ? `<p><small>ملاحظة</small><strong>${escapeHtml(order.note)}</strong></p>` : ''}</div><h3>المنتجات</h3><div class="orderItems">${order.items.map(item => `<div><span>${item.quantity} × ${escapeHtml(i18n.lang === 'fr' ? (item.productNameFr || tr(item.productName)) : item.productName)}</span><strong>${priceOf(item.unitPrice * item.quantity)}</strong></div>`).join('')}</div><div class="orderTotal"><span>مجموع المنتجات</span><strong>${priceOf(order.subtotal)}</strong></div><p class="hint">رسوم التوصيل كتتأكد مع الزبون قبل الإرسال.</p><label>حالة الطلب<select id="orderStatus">${Object.entries(statusLabels).map(([key,label]) => `<option value="${key}" ${key === order.status ? 'selected' : ''}>${label}</option>`).join('')}</select></label><p id="orderError" class="error" role="alert"></p><button type="button" class="primary" id="saveOrderStatus" data-id="${order.id}">حفظ الحالة</button>`
+  $('#orderDetails').innerHTML = `<div class="orderMeta"><p><small>رقم الطلب</small><strong dir="ltr">${escapeHtml(order.orderNumber)}</strong></p><p><small>التاريخ</small><strong>${escapeHtml(dateTime(order.createdAt))}</strong></p><p><small>الزبون</small><strong>${escapeHtml(order.customerName)}</strong></p><p><small>الهاتف</small><strong dir="ltr">${escapeHtml(order.phone)}</strong></p><p><small>المدينة</small><strong>${escapeHtml(order.city)}</strong></p><p><small>العنوان</small><strong>${escapeHtml(order.address)}</strong></p>${order.note ? `<p><small>ملاحظة</small><strong>${escapeHtml(order.note)}</strong></p>` : ''}</div><h3>المنتجات</h3><div class="orderItems">${order.items.map(item => `<div><span>${item.quantity} × ${escapeHtml(weightOf(item))} · ${escapeHtml(i18n.lang === 'fr' ? (item.productNameFr || tr(item.productName)) : item.productName)}</span><strong>${priceOf(item.unitPrice * item.quantity)}</strong></div>`).join('')}</div><div class="orderTotal"><span>مجموع المنتجات</span><strong>${priceOf(order.subtotal)}</strong></div><p class="hint">رسوم التوصيل كتتأكد مع الزبون قبل الإرسال.</p><label>حالة الطلب<select id="orderStatus">${Object.entries(statusLabels).map(([key,label]) => `<option value="${key}" ${key === order.status ? 'selected' : ''}>${label}</option>`).join('')}</select></label><p id="orderError" class="error" role="alert"></p><button type="button" class="primary" id="saveOrderStatus" data-id="${order.id}">حفظ الحالة</button>`
   if (!$('#orderDialog').open) $('#orderDialog').showModal()
   i18n.apply()
 }
 async function loadProducts() {
   try {
     products = await api('/api/products')
-  $('#productList').innerHTML = products.length ? products.map(product => `<article class="productRow">${product.imageKey ? `<img src="/media/${encodeURIComponent(product.imageKey)}" alt=""/>` : '<span class="adminJarVisual"><img class="adminJarImage" src="/rahiq-signature-jar.png" alt=""/><img class="adminJarLogo" src="/brand-logo.png" alt=""/></span>'}<div><strong>${escapeHtml(nameOf(product))}</strong><small>${priceOf(product.price)}</small></div><button type="button" data-edit="${product.id}">تعديل</button><button type="button" class="delete" data-delete="${product.id}">حذف</button></article>`).join('') : '<p class="empty">ما كايناش منتجات.</p>'
+  $('#productList').innerHTML = products.length ? products.map(product => `<article class="productRow">${product.imageKey ? `<img src="/media/${encodeURIComponent(product.imageKey)}" alt=""/>` : '<span class="adminJarVisual"><img class="adminJarImage" src="/rahiq-signature-jar.png" alt=""/><img class="adminJarLogo" src="/brand-logo.png" alt=""/></span>'}<div><strong>${escapeHtml(weightOf(product))} · ${escapeHtml(nameOf(product))}</strong><small>${priceOf(product.price)}</small></div><button type="button" data-edit="${product.id}">تعديل</button><button type="button" class="delete" data-delete="${product.id}">حذف</button></article>`).join('') : '<p class="empty">ما كايناش منتجات.</p>'
     $('#productList').querySelectorAll('[data-edit]').forEach(button => button.addEventListener('click', () => openProduct(products.find(product => product.id === Number(button.dataset.edit)))))
     $('#productList').querySelectorAll('[data-delete]').forEach(button => button.addEventListener('click', () => deleteProduct(Number(button.dataset.delete))))
   } catch (error) { $('#globalError').textContent = error.message }
@@ -105,6 +106,7 @@ function openProduct(product) {
   form.elements.name.value = product?.name || ''
   form.elements.nameFr.value = product?.nameFr || ''
   form.elements.price.value = product?.price || ''
+  form.elements.weightKg.value = product ? Number(product.weightGrams || 1000) / 1000 : 1
   form.elements.description.value = product?.description || ''
   form.elements.descriptionFr.value = product?.descriptionFr || ''
   form.elements.imageKey.value = product?.imageKey || ''
@@ -173,7 +175,7 @@ $('#productForm').addEventListener('submit', async event => {
       const result = await api('/api/admin/upload', { method: 'POST', body: upload })
       imageKey = result.imageKey
     }
-    const body = { name: form.elements.name.value.trim(), nameFr: form.elements.nameFr.value.trim(), price: Number(form.elements.price.value), description: form.elements.description.value.trim(), descriptionFr: form.elements.descriptionFr.value.trim(), tone: form.elements.tone.value, imageKey }
+    const body = { name: form.elements.name.value.trim(), nameFr: form.elements.nameFr.value.trim(), price: Number(form.elements.price.value), weightGrams: Math.round(Number(form.elements.weightKg.value) * 1000), description: form.elements.description.value.trim(), descriptionFr: form.elements.descriptionFr.value.trim(), tone: form.elements.tone.value, imageKey }
     const id = form.elements.id.value
     await api(id ? '/api/products/' + id : '/api/products', { method: id ? 'PUT' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
     $('#productDialog').close()

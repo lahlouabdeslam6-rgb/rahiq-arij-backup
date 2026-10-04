@@ -16,6 +16,8 @@ const safe = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&a
 const i18n = window.rahiqI18n
 const tr = value => i18n.translate(value)
 const productName = product => i18n.lang === 'fr' ? (product.nameFr || product.name) : product.name
+const productWeight = product => { const grams = Number(product.weightGrams) || 1000; return grams >= 1000 ? `${Number((grams / 1000).toFixed(3))}kg` : `${grams}g` }
+const productTitle = product => `${productWeight(product)} · ${productName(product)}`
 const productDescription = product => i18n.lang === 'fr' ? (product.descriptionFr || product.description) : product.description
 const tones = new Set(['clover','sidr','eucalyptus','rehamna','carob','fernan','daghmous','lemon'])
 const mockup = (name, tone) => `<div class="jarVisual" data-honey="${tones.has(tone) ? tone : 'rehamna'}"><img class="jarImage" src="/rahiq-signature-jar.png" alt="تصوّر لتصميم عبوة ${safe(name)}"/><img class="jarLogo" src="/brand-logo.png" alt=""/></div>`
@@ -84,7 +86,7 @@ function addToCart(id, source) {
   else cart.push({ id, quantity: 1 })
   saveCart()
   if (details.open) details.close()
-  showCartNotice(productName(product))
+  showCartNotice(productTitle(product))
   animateToCart(source)
 }
 function updateCart() {
@@ -95,7 +97,7 @@ function updateCart() {
   const content = cartDialog.querySelector('.cartContent')
   if (!cart.length) { content.innerHTML = '<div class="cartEmpty"><span class="emptyCartIcon">◇</span><h3>سلة مشترياتك فارغة</h3><p>تعرّف على مجموعتنا واختر العسل المناسب لك.</p></div><button type="button" class="cartContinue">تصفح المنتجات</button>'; return }
   const subtotal = cart.reduce((sum, line) => sum + products.find(product => product.id === line.id).price * line.quantity, 0)
-  content.innerHTML = `<div class="cartLines">${cart.map(line => { const product = products.find(item => item.id === line.id); return `<article class="cartLine"><div class="cartThumb">${productPhoto(product)}</div><div><strong>${safe(productName(product))}</strong><small>${money(product.price)}</small><div class="quantity"><button type="button" data-dec="${product.id}" aria-label="تقليل كمية ${safe(productName(product))}">−</button><span>${line.quantity}</span><button type="button" data-inc="${product.id}" aria-label="زيادة كمية ${safe(productName(product))}">+</button></div></div><b>${money(product.price * line.quantity)}</b></article>` }).join('')}</div><div class="cartFooter"><div class="cartTotal"><span>مجموع المنتجات</span><strong>${money(subtotal)}</strong></div><p class="cartNote">تُحدد رسوم التوصيل بعد مراجعة المدينة والعنوان. الدفع عند الاستلام.</p><button type="button" class="checkoutStart">متابعة الطلب ←</button></div>`
+  content.innerHTML = `<div class="cartLines">${cart.map(line => { const product = products.find(item => item.id === line.id); return `<article class="cartLine"><div class="cartThumb">${productPhoto(product)}</div><div><strong>${safe(productTitle(product))}</strong><small>${money(product.price)}</small><div class="quantity"><button type="button" data-dec="${product.id}" aria-label="تقليل كمية ${safe(productName(product))}">−</button><span>${line.quantity}</span><button type="button" data-inc="${product.id}" aria-label="زيادة كمية ${safe(productName(product))}">+</button></div></div><b>${money(product.price * line.quantity)}</b></article>` }).join('')}</div><div class="cartFooter"><div class="cartTotal"><span>مجموع المنتجات</span><strong>${money(subtotal)}</strong></div><p class="cartNote">تُحدد رسوم التوصيل بعد مراجعة المدينة والعنوان. الدفع عند الاستلام.</p><button type="button" class="checkoutStart">متابعة الطلب ←</button></div>`
 }
 cartDialog.addEventListener('click', event => {
   const button = event.target.closest('button')
@@ -117,7 +119,7 @@ function renderCheckout() {
   const subtotal = cart.reduce((sum, line) => sum + products.find(product => product.id === line.id).price * line.quantity, 0)
   cartDialog.querySelector('.cartContent').innerHTML = `<form id="checkoutForm">
     <div class="checkoutFields"><label>الاسم الكامل<input name="customerName" autocomplete="name" minlength="2" maxlength="100" required></label><label>رقم الهاتف<input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06 12 34 56 78" required></label><label>العنوان الكامل<textarea name="address" autocomplete="street-address" minlength="5" maxlength="300" placeholder="المدينة، الحي، الزنقة ورقم الدار" required></textarea></label><label class="websiteField" aria-hidden="true">website<input name="website" tabindex="-1" autocomplete="off"></label></div>
-    <div class="checkoutSummary"><h3>ملخص الطلب</h3>${cart.map(line => { const product = products.find(item => item.id === line.id); return `<div class="summaryLine"><span>${line.quantity} × ${safe(productName(product))}</span><strong>${money(product.price * line.quantity)}</strong></div>` }).join('')}<div class="cartTotal"><span>مجموع المنتجات</span><strong>${money(subtotal)}</strong></div><p class="cartNote">تُحدد رسوم التوصيل بعد مراجعة المدينة والعنوان.</p></div>
+    <div class="checkoutSummary"><h3>ملخص الطلب</h3>${cart.map(line => { const product = products.find(item => item.id === line.id); return `<div class="summaryLine"><span>${line.quantity} × ${safe(productTitle(product))}</span><strong>${money(product.price * line.quantity)}</strong></div>` }).join('')}<div class="cartTotal"><span>مجموع المنتجات</span><strong>${money(subtotal)}</strong></div><p class="cartNote">تُحدد رسوم التوصيل بعد مراجعة المدينة والعنوان.</p></div>
     <p class="checkoutError" role="alert"></p><button type="submit" class="checkoutSubmit">تأكيد الطلب — ${money(subtotal)}</button><div class="checkoutTrust"><span>دفع عند الاستلام</span><span>تأكيد هاتفي للطلب</span></div><button type="button" class="backToCart">العودة إلى السلة</button>
   </form>`
 }
@@ -140,11 +142,11 @@ cartDialog.addEventListener('submit', async event => {
 })
 
 function renderProducts() {
-  grid.innerHTML = products.length ? products.map(product => { const name = safe(productName(product)); return `<article class="productCard"><div class="productArt"><span class="productIndex">${name}</span><button type="button" class="productImageButton" data-detail="${product.id}" aria-label="${tr('عرض تفاصيل')} ${name}">${productPhoto(product)}</button>${!product.imageKey ? `<span class="productMockupNote">${tr('تصوّر لتصميم العبوة')}</span>` : ''}</div><div class="productInfo"><button type="button" class="productNameButton" data-detail="${product.id}" aria-label="${tr('عرض تفاصيل')} ${name}"><h3>${name}</h3></button></div><div class="productMeta"><strong>${money(product.price)}</strong><button type="button" class="addCartButton" data-add="${product.id}" aria-label="${tr('أضف إلى السلة')} ${name}">${plusIcon}<span>${tr('أضف للسلة')}</span></button></div></article>` }).join('') : `<div class="loading">${tr('لا توجد منتجات متاحة حالياً.')}</div>`
+  grid.innerHTML = products.length ? products.map(product => { const name = safe(productName(product)); const weight = safe(productWeight(product)); return `<article class="productCard"><div class="productArt"><span class="productIndex">${name}</span><button type="button" class="productImageButton" data-detail="${product.id}" aria-label="${tr('عرض تفاصيل')} ${name}">${productPhoto(product)}</button>${!product.imageKey ? `<span class="productMockupNote">${tr('تصوّر لتصميم العبوة')}</span>` : ''}</div><div class="productInfo"><button type="button" class="productNameButton" data-detail="${product.id}" aria-label="${tr('عرض تفاصيل')} ${name}"><h3><span class="productWeight" dir="ltr">${weight}</span> ${name}</h3></button></div><div class="productMeta"><strong>${money(product.price)}</strong><button type="button" class="addCartButton" data-add="${product.id}" aria-label="${tr('أضف إلى السلة')} ${name}">${plusIcon}<span>${tr('أضف للسلة')}</span></button></div></article>` }).join('') : `<div class="loading">${tr('لا توجد منتجات متاحة حالياً.')}</div>`
 }
 function showDetails(product) {
   details.dataset.productId = product.id
-  details.querySelector('.detailsBody').innerHTML = `<div class="detailsMedia">${productPhoto(product)}</div><div class="detailsCopy"><h2>${safe(productName(product))}</h2><p>${safe(productDescription(product) || tr('عسل مغربي خام بمذاق أصيل.'))}</p><strong>${money(product.price)}</strong><button type="button" class="addCartButton" data-add="${product.id}">${tr('أضف إلى السلة')}</button></div>`
+  details.querySelector('.detailsBody').innerHTML = `<div class="detailsMedia">${productPhoto(product)}</div><div class="detailsCopy"><h2><span class="productWeight" dir="ltr">${safe(productWeight(product))}</span> ${safe(productName(product))}</h2><p>${safe(productDescription(product) || tr('عسل مغربي خام بمذاق أصيل.'))}</p><strong>${money(product.price)}</strong><button type="button" class="addCartButton" data-add="${product.id}">${tr('أضف إلى السلة')}</button></div>`
   if (!details.open) details.showModal()
 }
 grid.addEventListener('click', event => {
