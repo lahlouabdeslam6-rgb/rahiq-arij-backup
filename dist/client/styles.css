@@ -504,33 +504,36 @@ html[dir="rtl"] .heroVideo{mask-image:linear-gradient(to left,transparent 0%,#00
 
 .productImageButton:has(video){position:relative}.productImageButton:has(video)::after{content:"▶";position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#281b13cc;color:#fff;font-size:20px;pointer-events:none}
 
-.cta.contact{position:relative;overflow:hidden;padding:64px 0 52px;background:radial-gradient(circle at 75% 15%,#422918 0,#281a12 36%,#1b130f 100%);color:#f5e8d2;text-align:right}
-.cta.contact::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 0 60%,#c2934b0d 100%)}
-.contactGrid{position:relative;display:grid;grid-template-columns:minmax(210px,.55fr) minmax(0,1.45fr);gap:clamp(30px,6vw,90px);align-items:stretch}
-.contactBrand{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;border-left:1px solid #9c774d66;padding-left:clamp(25px,4vw,60px)}
-.cta .contactBrand img{width:96px;height:96px;margin:0 0 21px;border:1px solid #b48b51}
-.contactBrandName{font-size:1.5rem;font-weight:800;color:#f6e4bf;line-height:1.35}
-.contactBrandLine{font-size:.82rem;color:#bfa985;margin-top:4px}
-.contactBrandRule{width:40px;height:1px;background:#b98845;margin:28px 0 15px}
-.contactBrandPlace{font-size:.7rem;color:#a99475;letter-spacing:.08em}
-.cta .contactCopy .overline{margin:0 0 13px;color:#d1a05c;letter-spacing:.19em}
-.cta .contactCopy h2{font-size:clamp(2.25rem,4.2vw,4.2rem);line-height:1.25;letter-spacing:-.045em;margin:0;color:#f9efe0}
-.cta .contactCopy h2 em{color:#d9a85e}
-.cta p.contactLead{max-width:570px;margin:18px 0 27px;color:#d1bea3;font-size:.9rem;line-height:1.95}
-.contactActions{display:flex;flex-wrap:wrap;align-items:stretch;gap:12px}
-.contactActions>*{display:inline-flex;align-items:center;justify-content:center;gap:15px;min-height:54px;padding:12px 20px;border-radius:3px;font-weight:800;font-size:.86rem;transition:transform .2s,background .2s,border-color .2s}
+.cta.contact{padding:42px 0 24px;background:radial-gradient(ellipse at 50% 0,#3d2819,#211710 70%);color:#f7eddd;text-align:center}
+.contactInner{max-width:1000px}
+.contactIdentity{display:flex;flex-direction:column;align-items:center;gap:10px}
+.contactIdentity a{display:block;border-radius:50%}
+.cta.contact .contactIdentity img{display:block;width:84px;height:84px;margin:0;border:1px solid #ba8c47;border-radius:50%;box-shadow:0 0 0 7px #d4a8550a}
+.contactIdentity>span{font-size:1.02rem;font-weight:800;color:#f1dbb1}
+.cta.contact .contactCopy .overline{margin:14px 0 10px;font-size:.65rem;letter-spacing:.12em;color:#c99852}
+.cta.contact .contactCopy h2{max-width:760px;margin:0 auto;font-size:clamp(1.9rem,3.5vw,3rem);font-weight:600;line-height:1.45;letter-spacing:-.035em;color:#fff5e5}
+.cta.contact .contactCopy h2 em{color:#d4a153;font-style:normal;white-space:nowrap}
+.cta.contact p.contactLead{max-width:640px;margin:12px auto 24px;font-size:.88rem;line-height:1.8;color:#d2c1a6}
+.contactActions{display:flex;justify-content:center;align-items:stretch;gap:12px;max-width:600px;margin:auto}
+.contactActions>*{display:inline-flex;align-items:center;justify-content:center;gap:13px;min-height:58px;flex:1;min-width:0;padding:11px 20px;border:1px solid transparent;border-radius:5px;font-weight:800;font-size:.9rem;transition:background .2s,transform .2s}
+.contactActions svg{width:23px;height:23px;flex:none}
 .contactActions>*:hover{transform:translateY(-2px)}
-.contactCart{background:#e6c58d;color:#25180f;border:1px solid #e6c58d;min-width:190px;justify-content:space-between}
-.contactCart:hover{background:#f1d8a9;border-color:#f1d8a9}
-.contactCart span:last-child{font-size:1.2rem;line-height:1}
-.contactWhatsApp{background:#13854d;color:#fff;border:1px solid #13854d;min-width:220px}
-.contactWhatsApp:hover{background:#0c6f3e;border-color:#0c6f3e}
-.contactWhatsApp svg{width:22px;height:22px;flex:none}
-.contactWhatsApp span{display:flex;align-items:center;gap:8px}
-.contactWhatsApp strong{font-size:.88rem;white-space:nowrap;font-variant-numeric:tabular-nums}
-.contactFoot{display:flex;justify-content:space-between;align-items:center;gap:20px;border-top:1px solid #9c774d66;margin-top:34px;padding-top:18px;color:#a99475;font-size:.72rem}
-.contactFoot a{display:inline-flex;align-items:center;gap:8px;color:#e8d5b5}
-.contactFoot a:hover{color:#fff}
-.contactFoot svg{width:18px;height:18px}
-@media(max-width:760px){.cta.contact{padding:42px 0 35px}.contactGrid{grid-template-columns:1fr;gap:26px}.contactBrand{display:grid;grid-template-columns:62px 1fr;grid-template-rows:auto auto;align-items:center;justify-content:start;column-gap:15px;border-left:0;border-bottom:1px solid #9c774d66;padding:0 0 22px}.cta .contactBrand img{grid-row:1/3;width:62px;height:62px;margin:0}.contactBrandName{font-size:1.18rem;align-self:end}.contactBrandLine{font-size:.7rem;align-self:start;margin:0}.contactBrandRule,.contactBrandPlace{display:none}.cta .contactCopy h2{font-size:clamp(2.1rem,8vw,3.2rem)}.contactActions>*{flex:1;min-width:170px}.contactFoot{margin-top:28px}}
-@media(max-width:460px){.cta.contact{padding:36px 0 30px}.cta .contactCopy h2{font-size:2.25rem}.cta p.contactLead{font-size:.82rem;margin:13px 0 22px}.contactActions{display:grid;grid-template-columns:1fr;gap:10px}.contactActions>*{width:100%;min-height:52px}.contactFoot{align-items:flex-start;flex-direction:column;gap:10px;font-size:.68rem}}
+.contactActions .contactCart{background:#dfbb7c;border-color:#dfbb7c;color:#25180f}
+.contactActions .contactCart:hover{background:#eed09c;border-color:#eed09c}
+.contactArrow{margin-inline-start:auto;font-size:1.2rem;line-height:1}
+.contactActions .contactWhatsApp{background:#128447;border-color:#128447;color:#fff}
+.contactActions .contactWhatsApp:hover{background:#096c39;border-color:#096c39}
+.contactWhatsApp>span{display:flex;align-items:center;gap:10px}
+.contactWhatsApp strong{white-space:nowrap;font-size:.9rem;font-variant-numeric:tabular-nums}
+.contactSocialArea{margin-top:27px}
+.cta.contact .contactSocialArea>p{max-width:none;text-align:center;margin:0 0 12px;font-size:.73rem;color:#c7b291}
+.contactSocials{display:flex;justify-content:center;align-items:start;gap:20px;direction:ltr}
+.contactSocial{display:flex;flex-direction:column;align-items:center;gap:7px;color:#ead7b8;font:11px Arial,Helvetica,sans-serif;text-decoration:none}
+.contactSocialIcon{display:grid;place-items:center;width:46px;height:46px;border:1px solid #8e714b80;border-radius:50%;background:#e7c28707;transition:background .2s,color .2s,border-color .2s}
+.contactSocial svg{width:20px;height:20px}
+a.contactSocial:hover .contactSocialIcon,a.contactSocial:focus-visible .contactSocialIcon{background:#dfbb7c;border-color:#dfbb7c;color:#211710}
+.contactSocialPending{opacity:.7}
+.contactFoot{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid #9c774d40;margin-top:28px;padding-top:17px;color:#b69a75;font-size:.7rem}
+@media(max-width:800px){.cta.contact{padding:32px 0 22px}.cta.contact .contactCopy h2{font-size:2.2rem}.contactActions{max-width:560px}.cta.contact .contactIdentity img{width:74px;height:74px}}
+@media(max-width:560px){.cta.contact{padding-bottom:82px}.cta.contact .contactCopy h2{font-size:1.8rem;line-height:1.45}.cta.contact p.contactLead{font-size:.81rem;margin:10px auto 20px;max-width:340px}.contactActions{flex-direction:column;max-width:340px;gap:10px}.contactActions>*{flex:auto;min-height:54px;padding:10px 18px}.contactCart .contactArrow{margin-inline-start:0}.contactSocials{gap:20px}.contactSocialArea{margin-top:23px}.contactFoot{justify-content:center;flex-wrap:wrap;gap:5px 18px;font-size:.65rem;margin-top:24px}}
+@media(prefers-reduced-motion:reduce){.contactActions>*,.contactSocialIcon{transition:none}.contactActions>*:hover{transform:none}}

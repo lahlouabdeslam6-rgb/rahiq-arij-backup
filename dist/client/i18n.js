@@ -1,5 +1,6 @@
 (() => {
   const fr = {
+    'اختار عسلك وكمّل طلبك، أو تواصل معنا على واتساب.':'Choisissez votre miel et passez commande, ou échangez avec nous sur WhatsApp.', 'تابع حكاية المنحل':'Suivez la vie du rucher', 'حسابات التواصل الاجتماعي':'Réseaux sociaux',
     'إعادة المحاولة':'Réessayer', 'صورة أو فيديو المنتج':'Photo ou vidéo du produit', 'صور حتى 5MB · فيديو MP4/WebM حتى 30MB':'Photos : 5 Mo max · Vidéo MP4/WebM : 30 Mo max', 'ملف غير صالح: صورة حتى 5MB أو فيديو MP4/WebM حتى 30MB':'Fichier invalide : photo de 5 Mo maximum ou vidéo MP4/WebM de 30 Mo maximum',
     'رحيق أريج':'Rahiq Arij', 'شعار رحيق أريج':'Logo Rahiq Arij', 'القائمة الرئيسية':'Navigation principale', 'منظر مستوحى من مراعي الرحامنة وخلايا النحل':'Paysage inspiré des pâturages de Rehamna et des ruches', 'عسل خام موثوق':'Miel brut de confiance', 'من الخلية إلى المائدة':'De la ruche à votre table', 'الرحامنة، المغرب':'Rehamna, Maroc', 'الرحامنة · المغرب':'Rehamna · Maroc', '←':'→',
     'الرئيسية':'Accueil', 'أنواع العسل':'Nos miels', 'حكايتنا':'Notre histoire', 'من الخلية للمائدة':'De la ruche à votre table', 'سلة المشتريات':'Mon panier', 'عرض سلة المشتريات':'Ouvrir le panier',
