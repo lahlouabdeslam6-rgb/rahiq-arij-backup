@@ -14,7 +14,7 @@ export function renderContact({ instagram, whatsapp }) {
       <div class="contactIdentity"><a href="#top" aria-label="رحيق أريج"><img src="/brand-logo.png" width="84" height="84" alt="شعار رحيق أريج"/></a><span>رحيق أريج</span></div>
       <div class="contactCopy"><p class="overline">من الخلية إلى المائدة</p><h2 id="contactTitle">عسل تحكي كل قطرة <em>حكاية أرضها.</em></h2><p class="contactLead">اختار عسلك وكمّل طلبك، أو تواصل معنا على واتساب.</p></div>
       <div class="contactActions"><button type="button" class="contactCart cartTrigger">${bagIcon}<span>أكمل طلبك</span><span class="contactArrow" aria-hidden="true">↗</span></button><a class="contactWhatsApp" href="https://wa.me/212648366622" target="_blank" rel="noopener noreferrer" aria-label="تواصل عبر واتساب على 0648 36 66 22">${whatsapp}<span><span>واتساب</span><strong dir="ltr">0648 36 66 22</strong></span></a></div>
-      <div class="contactSocialArea"><p>تابع حكاية المنحل</p><div class="contactSocials" aria-label="حسابات التواصل الاجتماعي">${socialItems}</div></div>
+      <div class="contactSocialArea"><p>تابعونا على منصات التواصل</p><div class="contactSocials" aria-label="حسابات التواصل الاجتماعي">${socialItems}</div></div>
       <div class="contactFoot"><span>عسل خام من أرض الرحامنة</span><span>الرحامنة · المغرب</span></div>
     </div>
   </section>`
