@@ -1,5 +1,5 @@
 const cookieName = '__Host-rahiq_admin'
-let setupPromise
+const initializedDatabases = new WeakSet()
 
 const initialProducts = [
   [1, 'عسل الفصة', 100, 'clover', 'عسل الفصة بلون ذهبي فاتح وقوام لطيف. مذاقه هادئ وحلاوته متوازنة، ويليق بوجبة الفطور أو بإضافة صغيرة إلى مشروب دافئ.'],
@@ -36,14 +36,23 @@ function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers } })
 }
 
-function setup(env) {
+async function addColumn(db, table, name, sql) {
+  try { await db.prepare(sql).run() }
+  catch (error) {
+    const columns = (await db.prepare('PRAGMA table_info(' + table + ')').all()).results || []
+    if (!columns.some(column => column.name === name)) throw error
+  }
+}
+
+async function setup(env) {
   if (!env.DB) throw new Error('D1 binding is missing')
-  if (!setupPromise) setupPromise = (async () => {
+  if (initializedDatabases.has(env.DB)) return
+  await (async () => {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL, description TEXT NOT NULL DEFAULT \'\', image_key TEXT, tone TEXT NOT NULL DEFAULT \'rehamna\', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)').run()
     const productColumns = (await env.DB.prepare('PRAGMA table_info(products)').all()).results || []
-    if (!productColumns.some(column => column.name === 'name_fr')) await env.DB.prepare("ALTER TABLE products ADD COLUMN name_fr TEXT NOT NULL DEFAULT ''").run()
-    if (!productColumns.some(column => column.name === 'description_fr')) await env.DB.prepare("ALTER TABLE products ADD COLUMN description_fr TEXT NOT NULL DEFAULT ''").run()
-    if (!productColumns.some(column => column.name === 'weight_g')) await env.DB.prepare('ALTER TABLE products ADD COLUMN weight_g INTEGER NOT NULL DEFAULT 1000').run()
+    if (!productColumns.some(column => column.name === 'name_fr')) await addColumn(env.DB, 'products', 'name_fr', "ALTER TABLE products ADD COLUMN name_fr TEXT NOT NULL DEFAULT ''")
+    if (!productColumns.some(column => column.name === 'description_fr')) await addColumn(env.DB, 'products', 'description_fr', "ALTER TABLE products ADD COLUMN description_fr TEXT NOT NULL DEFAULT ''")
+    if (!productColumns.some(column => column.name === 'weight_g')) await addColumn(env.DB, 'products', 'weight_g', 'ALTER TABLE products ADD COLUMN weight_g INTEGER NOT NULL DEFAULT 1000')
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL, country TEXT, city TEXT, entered_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)').run()
     await env.DB.prepare('CREATE INDEX IF NOT EXISTS visits_entered_idx ON visits(entered_at)').run()
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT)').run()
@@ -51,8 +60,8 @@ function setup(env) {
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY AUTOINCREMENT, order_number TEXT NOT NULL UNIQUE, customer_name TEXT NOT NULL, phone TEXT NOT NULL, city TEXT NOT NULL, address TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', subtotal REAL NOT NULL, status TEXT NOT NULL DEFAULT 'NEW', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run()
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS order_items (id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER NOT NULL, product_id INTEGER, product_name TEXT NOT NULL, quantity INTEGER NOT NULL, unit_price REAL NOT NULL, FOREIGN KEY(order_id) REFERENCES orders(id))').run()
     const itemColumns = (await env.DB.prepare('PRAGMA table_info(order_items)').all()).results || []
-    if (!itemColumns.some(column => column.name === 'product_name_fr')) await env.DB.prepare("ALTER TABLE order_items ADD COLUMN product_name_fr TEXT NOT NULL DEFAULT ''").run()
-    if (!itemColumns.some(column => column.name === 'weight_g')) await env.DB.prepare('ALTER TABLE order_items ADD COLUMN weight_g INTEGER NOT NULL DEFAULT 1000').run()
+    if (!itemColumns.some(column => column.name === 'product_name_fr')) await addColumn(env.DB, 'order_items', 'product_name_fr', "ALTER TABLE order_items ADD COLUMN product_name_fr TEXT NOT NULL DEFAULT ''")
+    if (!itemColumns.some(column => column.name === 'weight_g')) await addColumn(env.DB, 'order_items', 'weight_g', 'ALTER TABLE order_items ADD COLUMN weight_g INTEGER NOT NULL DEFAULT 1000')
     await env.DB.prepare('CREATE INDEX IF NOT EXISTS orders_created_idx ON orders(created_at)').run()
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS order_attempts (visitor_hash TEXT PRIMARY KEY, count INTEGER NOT NULL, first_at INTEGER NOT NULL)').run()
     const seeded = await env.DB.prepare("SELECT value FROM app_meta WHERE key='seeded'").first()
@@ -74,8 +83,8 @@ function setup(env) {
       await env.DB.prepare("UPDATE products SET name_fr=?,description_fr=? WHERE id=? AND name=? AND name_fr='' AND description_fr=''").bind(nameFr, descriptionFr, id, initialProducts[id - 1][1]).run()
     }
     await env.DB.prepare("UPDATE order_items SET product_name_fr=COALESCE((SELECT name_fr FROM products WHERE products.id=order_items.product_id),'') WHERE product_name_fr=''").run()
-  })().catch(error => { setupPromise = undefined; throw error })
-  return setupPromise
+  })()
+  initializedDatabases.add(env.DB)
 }
 
 const encode = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -115,7 +124,7 @@ function validProduct(body) {
   const weightGrams = body?.weightGrams === undefined ? 1000 : Number(body.weightGrams)
   const imageKey = body?.imageKey || null
   const tone = body?.tone || 'rehamna'
-  if (!name || name.length > 100 || !nameFr || nameFr.length > 100 || description.length > 600 || descriptionFr.length > 600 || !Number.isFinite(price) || price <= 0 || price > 100000 || !Number.isSafeInteger(weightGrams) || weightGrams < 1 || weightGrams > 100000 || (imageKey && !/^[a-f0-9-]{36}\.(png|jpg|webp)$/.test(imageKey)) || !['clover','sidr','eucalyptus','rehamna','carob','fernan','daghmous','lemon'].includes(tone)) return null
+  if (!name || name.length > 100 || !nameFr || nameFr.length > 100 || description.length > 600 || descriptionFr.length > 600 || !Number.isFinite(price) || price <= 0 || price > 100000 || !Number.isSafeInteger(weightGrams) || weightGrams < 1 || weightGrams > 100000 || (imageKey && !/^[a-f0-9-]{36}\.(png|jpg|webp|mp4|webm)$/.test(imageKey)) || !['clover','sidr','eucalyptus','rehamna','carob','fernan','daghmous','lemon'].includes(tone)) return null
   return { name, nameFr, price, weightGrams, description, descriptionFr, imageKey, tone }
 }
 async function bodyJson(request) {
@@ -252,8 +261,9 @@ export default {
           if (!env.IMAGES) return json({ error: 'Image storage unavailable' }, 503)
           const form = await request.formData()
           const file = form.get('image')
-          const extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
-          if (!(file instanceof File) || !extensions[file.type] || file.size > 5 * 1024 * 1024 || file.size === 0) return json({ error: 'صورة غير صالحة (JPG/PNG/WebP، حتى 5MB)' }, 400)
+          const extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'video/mp4': 'mp4', 'video/webm': 'webm' }
+          const limit = file?.type?.startsWith('video/') ? 30 * 1024 * 1024 : 5 * 1024 * 1024
+          if (!(file instanceof File) || !extensions[file.type] || file.size > limit || file.size === 0) return json({ error: 'ملف غير صالح: صورة حتى 5MB أو فيديو MP4/WebM حتى 30MB' }, 400)
           const key = `${crypto.randomUUID()}.${extensions[file.type]}`
           await env.IMAGES.put(key, file.stream(), { httpMetadata: { contentType: file.type } })
           return json({ imageKey: key, url: `/media/${key}` }, 201)
@@ -276,12 +286,28 @@ export default {
           return result.meta.changes ? json({ ok: true }) : json({ error: 'المنتج غير موجود' }, 404)
         }
       }
-      if (path.startsWith('/media/') && method === 'GET') {
+      if (path.startsWith('/media/') && (method === 'GET' || method === 'HEAD')) {
         const key = path.slice(7)
-        if (!/^[a-f0-9-]{36}\.(png|jpg|webp)$/.test(key)) return new Response('Not found', { status: 404 })
-        const object = await env.IMAGES?.get(key)
+        if (!/^[a-f0-9-]{36}\.(png|jpg|webp|mp4|webm)$/.test(key)) return new Response('Not found', { status: 404 })
+        const meta = await env.IMAGES?.head(key)
+        if (!meta) return new Response('Not found', { status: 404 })
+        const headers = { 'content-type': meta.httpMetadata?.contentType || 'application/octet-stream', 'cache-control': 'public, max-age=86400', 'x-content-type-options': 'nosniff', 'accept-ranges': 'bytes', 'content-length': String(meta.size) }
+        if (method === 'HEAD') return new Response(null, { headers })
+        let range
+        const requested = request.headers.get('range')
+        if (requested) {
+          const match = /^bytes=(\d*)-(\d*)$/.exec(requested)
+          if (!match || (!match[1] && !match[2])) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${meta.size}` } })
+          const start = match[1] ? Number(match[1]) : Math.max(0, meta.size - Number(match[2]))
+          const end = match[1] && match[2] ? Math.min(Number(match[2]), meta.size - 1) : meta.size - 1
+          if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= meta.size) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${meta.size}` } })
+          range = { offset: start, length: end - start + 1 }
+          headers['content-range'] = `bytes ${start}-${end}/${meta.size}`
+          headers['content-length'] = String(range.length)
+        }
+        const object = await env.IMAGES.get(key, range ? { range } : undefined)
         if (!object) return new Response('Not found', { status: 404 })
-        return new Response(object.body, { headers: { 'content-type': object.httpMetadata?.contentType || 'image/jpeg', 'cache-control': 'public, max-age=86400', 'x-content-type-options': 'nosniff' } })
+        return new Response(object.body, { status: range ? 206 : 200, headers })
       }
       if (path.startsWith('/api/')) return json({ error: 'Not found' }, 404)
       return clientAsset(request, env)

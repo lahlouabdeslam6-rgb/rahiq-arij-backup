@@ -23,7 +23,8 @@ const env = {
   SESSION_SECRET: 'test-session-secret-has-more-than-32-characters',
   IMAGES: {
     async put(key, stream, options) { images.set(key, { body: await new Response(stream).arrayBuffer(), httpMetadata: options.httpMetadata }) },
-    async get(key) { const item = images.get(key); return item && { body: item.body, httpMetadata: item.httpMetadata } },
+    async head(key) { const item = images.get(key); return item && { size: item.body.byteLength, httpMetadata: item.httpMetadata } },
+    async get(key, options) { const item = images.get(key); const range = options?.range; return item && { body: range ? item.body.slice(range.offset, range.offset + range.length) : item.body, httpMetadata: item.httpMetadata } },
   },
   ASSETS: { async fetch(request) { return new Response(new URL(request.url).pathname, { headers: { 'content-type': 'text/html' } }) } },
 }
@@ -130,4 +131,47 @@ test('correct admin password can recover from a prior rate limit', async () => {
   assert.equal(limited.status, 429)
   const correct = await worker.fetch(request('/api/admin/login', 'POST', { username: 'admin', password: env.ADMIN_PASSWORD }), env)
   assert.equal(correct.status, 200)
+})
+
+test('a stalled initialization request does not block later catalogue requests', async () => {
+  let release, started, first = true
+  const gate = new Promise(resolve => { release = resolve })
+  const entered = new Promise(resolve => { started = resolve })
+  const isolated = { ...env, DB: { prepare(sql) {
+    const statement = d1.prepare(sql)
+    if (first) { first = false; const run = statement.run.bind(statement); statement.run = async () => { started(); await gate; return run() } }
+    return statement
+  } } }
+  const stalled = worker.fetch(request('/api/products'), isolated)
+  await entered
+  let timeout
+  try {
+    const next = await Promise.race([worker.fetch(request('/api/products'), isolated), new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Catalogue was blocked by another request')), 1000) })])
+    assert.equal(next.status, 200)
+    assert.ok((await next.json()).length >= 8)
+  } finally { clearTimeout(timeout); release(); await stalled }
+})
+
+test('admin can upload a video, attach it to a product, and stream byte ranges', async () => {
+  const login = await worker.fetch(request('/api/admin/login', 'POST', { username: 'admin', password: env.ADMIN_PASSWORD }), env)
+  const cookie = login.headers.get('set-cookie').split(';')[0]
+  const form = new FormData()
+  form.append('image', new File([new Uint8Array([0,1,2,3,4,5,6,7])], 'product.mp4', { type: 'video/mp4' }))
+  assert.equal((await worker.fetch(request('/api/admin/upload', 'POST', form), env)).status, 401)
+  const upload = await worker.fetch(request('/api/admin/upload', 'POST', form, cookie), env)
+  assert.equal(upload.status, 201)
+  const media = await upload.json()
+  assert.match(media.imageKey, /\.mp4$/)
+  const created = await worker.fetch(request('/api/products', 'POST', { name: 'عسل بالفيديو', nameFr: 'Miel en vidéo', price: 100, imageKey: media.imageKey }, cookie), env)
+  assert.equal(created.status, 201)
+  assert.equal((await created.json()).imageKey, media.imageKey)
+  const partial = await worker.fetch(new Request('https://example.com' + media.url, { headers: { range: 'bytes=2-5' } }), env)
+  assert.equal(partial.status, 206)
+  assert.equal(partial.headers.get('content-type'), 'video/mp4')
+  assert.equal(partial.headers.get('content-range'), 'bytes 2-5/8')
+  assert.deepEqual([...new Uint8Array(await partial.arrayBuffer())], [2,3,4,5])
+  const invalid = await worker.fetch(new Request('https://example.com' + media.url, { headers: { range: 'bytes=99-' } }), env)
+  assert.equal(invalid.status, 416)
+  const head = await worker.fetch(new Request('https://example.com' + media.url, { method: 'HEAD' }), env)
+  assert.equal(head.headers.get('content-length'), '8')
 })

@@ -21,7 +21,7 @@ const productTitle = product => `${productWeight(product)} · ${productName(prod
 const productDescription = product => i18n.lang === 'fr' ? (product.descriptionFr || product.description) : product.description
 const tones = new Set(['clover','sidr','eucalyptus','rehamna','carob','fernan','daghmous','lemon'])
 const mockup = (name, tone) => `<div class="jarVisual" data-honey="${tones.has(tone) ? tone : 'rehamna'}"><img class="jarImage" src="/rahiq-signature-jar.png" alt="تصوّر لتصميم عبوة ${safe(name)}"/><img class="jarLogo" src="/brand-logo.png" alt=""/></div>`
-const productPhoto = product => product.imageKey && /^[a-f0-9-]{36}\.(png|jpg|webp)$/.test(product.imageKey) ? `<img class="uploadedImage" src="/media/${product.imageKey}" alt="${safe(productName(product))}"/>` : mockup(productName(product), product.tone)
+const productPhoto = product => product.imageKey && /^[a-f0-9-]{36}\.(mp4|webm)$/.test(product.imageKey) ? `<video class="uploadedImage productVideo" src="/media/${product.imageKey}#t=0.001" muted loop playsinline preload="metadata" aria-label="${safe(productName(product))}"></video>` : product.imageKey && /^[a-f0-9-]{36}\.(png|jpg|webp)$/.test(product.imageKey) ? `<img class="uploadedImage" src="/media/${product.imageKey}" alt="${safe(productName(product))}"/>` : mockup(productName(product), product.tone)
 const money = value => `${Number(value).toLocaleString(i18n.lang === 'fr' ? 'fr-MA' : 'ar-MA')} ${tr('درهم')}`
 const plusIcon = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>'
 let products = []
@@ -34,6 +34,7 @@ details.className = 'detailsDialog'
 details.setAttribute('aria-label', 'تفاصيل المنتج')
 details.innerHTML = '<button type="button" class="closeDetails" aria-label="إغلاق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button><div class="detailsBody"></div>'
 document.body.append(details)
+details.addEventListener('close', () => details.querySelectorAll('video').forEach(video => video.pause()))
 details.querySelector('.closeDetails').addEventListener('click', () => details.close())
 details.addEventListener('click', event => { if (event.target === details) details.close() })
 
@@ -148,6 +149,8 @@ function showDetails(product) {
   details.dataset.productId = product.id
   details.querySelector('.detailsBody').innerHTML = `<div class="detailsMedia">${productPhoto(product)}</div><div class="detailsCopy"><h2><span class="productWeight" dir="ltr">${safe(productWeight(product))}</span> ${safe(productName(product))}</h2><p>${safe(productDescription(product) || tr('عسل مغربي خام بمذاق أصيل.'))}</p><strong>${money(product.price)}</strong><button type="button" class="addCartButton" data-add="${product.id}">${tr('أضف إلى السلة')}</button></div>`
   if (!details.open) details.showModal()
+  const video = details.querySelector('video')
+  if (video) { video.controls = true; video.play().catch(() => {}) }
 }
 grid.addEventListener('click', event => {
   const add = event.target.closest('[data-add]')
@@ -169,13 +172,18 @@ document.addEventListener('rahiq:languagechange', () => {
   } else if (!cartDialog.querySelector('.orderSuccess')) updateCart()
   i18n.apply()
 })
-fetch('/api/products', { cache: 'no-store' }).then(async response => {
+async function loadCatalogue() {
+try {
+  const response = await fetch('/api/products', { cache: 'no-store', signal: AbortSignal.timeout(15000) })
   if (!response.ok) throw new Error('Products unavailable')
   products = await response.json()
   renderProducts()
   updateCart()
   i18n.apply()
-}).catch(() => { grid.innerHTML = `<div class="loading">${tr('تعذر تحميل المنتجات حالياً. حاول من بعد شوية.')}</div>` })
+} catch { grid.innerHTML = `<div class="loading">${tr('تعذر تحميل المنتجات حالياً. حاول من بعد شوية.')}<br/><button type="button" class="retryProducts">${tr('إعادة المحاولة')}</button></div>` }
+}
+grid.addEventListener('click', event => { if (event.target.closest('.retryProducts')) loadCatalogue() })
+loadCatalogue()
 
 try {
   let sessionId = sessionStorage.getItem('rahiq-visit-session')

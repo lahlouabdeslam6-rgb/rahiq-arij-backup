@@ -51,8 +51,8 @@
     <label>الوصف بالعربية<textarea name="description" rows="3" maxlength="600" placeholder="وصف قصير للعسل"></textarea></label>
     <label>الوصف بالفرنسية<textarea name="descriptionFr" rows="3" maxlength="600" lang="fr" dir="ltr" placeholder="وصف العسل بالفرنسية"></textarea></label>
     <label>درجة لون العسل<select name="tone"><option value="clover">فاتح</option><option value="lemon">ذهبي فاتح</option><option value="eucalyptus">عنبري</option><option value="rehamna">عنبري غامق</option><option value="fernan">غامق</option><option value="daghmous">غامق دافئ</option><option value="sidr">داكن</option><option value="carob">داكن جداً</option></select></label>
-    <label>صورة المنتج <small>JPG أو PNG أو WebP، حتى 5MB</small><input name="image" type="file" accept="image/jpeg,image/png,image/webp" /></label>
-    <img id="imagePreview" class="imagePreview" alt="معاينة الصورة" hidden/><p id="formError" class="error" role="alert"></p>
+    <label>صورة أو فيديو المنتج <small>صور حتى 5MB · فيديو MP4/WebM حتى 30MB</small><input name="image" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" /></label>
+    <video id="videoPreview" controls muted playsinline preload="metadata" class="imagePreview" hidden></video><img id="imagePreview" class="imagePreview" alt="معاينة الصورة" hidden/><p id="formError" class="error" role="alert"></p>
     <div class="dialogActions"><button type="button" id="cancelDialog" class="secondary">إلغاء</button><button type="submit" class="primary">حفظ التعديلات</button></div>
   </form></dialog>
   <dialog id="orderDialog" class="orderDialog" aria-label="تفاصيل الطلب"><div class="dialogHead"><h2>تفاصيل الطلب</h2><button type="button" id="closeOrderDialog" class="iconButton" aria-label="إغلاق">×</button></div><div id="orderDetails"></div></dialog>

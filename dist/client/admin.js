@@ -3,6 +3,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character =>
 const i18n = window.rahiqI18n
 const tr = value => i18n.translate(value)
 const nameOf = product => i18n.lang === 'fr' ? (product.nameFr || product.name) : product.name
+const isVideoKey = key => /\.(mp4|webm)$/.test(key || '')
 const weightOf = product => { const grams = Number(product.weightGrams) || 1000; return grams >= 1000 ? `${Number((grams / 1000).toFixed(3))}kg` : `${grams}g` }
 const priceOf = value => `${Number(value).toLocaleString(i18n.lang === 'fr' ? 'fr-MA' : 'ar-MA')} ${tr('درهم')}`
 const locationName = (country, city) => {
@@ -94,7 +95,7 @@ function openOrder(order) {
 async function loadProducts() {
   try {
     products = await api('/api/products')
-  $('#productList').innerHTML = products.length ? products.map(product => `<article class="productRow">${product.imageKey ? `<img src="/media/${encodeURIComponent(product.imageKey)}" alt=""/>` : '<span class="adminJarVisual"><img class="adminJarImage" src="/rahiq-signature-jar.png" alt=""/><img class="adminJarLogo" src="/brand-logo.png" alt=""/></span>'}<div><strong>${escapeHtml(weightOf(product))} · ${escapeHtml(nameOf(product))}</strong><small>${priceOf(product.price)}</small></div><button type="button" data-edit="${product.id}">تعديل</button><button type="button" class="delete" data-delete="${product.id}">حذف</button></article>`).join('') : '<p class="empty">ما كايناش منتجات.</p>'
+  $('#productList').innerHTML = products.length ? products.map(product => `<article class="productRow">${product.imageKey ? (isVideoKey(product.imageKey) ? `<video src="/media/${encodeURIComponent(product.imageKey)}" muted playsinline preload="metadata" aria-label="${escapeHtml(nameOf(product))}"></video>` : `<img src="/media/${encodeURIComponent(product.imageKey)}" alt=""/>`) : '<span class="adminJarVisual"><img class="adminJarImage" src="/rahiq-signature-jar.png" alt=""/><img class="adminJarLogo" src="/brand-logo.png" alt=""/></span>'}<div><strong>${escapeHtml(weightOf(product))} · ${escapeHtml(nameOf(product))}</strong><small>${priceOf(product.price)}</small></div><button type="button" data-edit="${product.id}">تعديل</button><button type="button" class="delete" data-delete="${product.id}">حذف</button></article>`).join('') : '<p class="empty">ما كايناش منتجات.</p>'
     $('#productList').querySelectorAll('[data-edit]').forEach(button => button.addEventListener('click', () => openProduct(products.find(product => product.id === Number(button.dataset.edit)))))
     $('#productList').querySelectorAll('[data-delete]').forEach(button => button.addEventListener('click', () => deleteProduct(Number(button.dataset.delete))))
   } catch (error) { $('#globalError').textContent = error.message }
@@ -113,8 +114,7 @@ function openProduct(product) {
   form.elements.tone.value = product?.tone || 'rehamna'
   $('#dialogTitle').textContent = product ? 'تعديل المنتج' : 'إضافة منتج'
   $('#formError').textContent = ''
-  $('#imagePreview').hidden = !product?.imageKey
-  if (product?.imageKey) $('#imagePreview').src = '/media/' + encodeURIComponent(product.imageKey)
+  showMediaPreview(product?.imageKey ? '/media/' + encodeURIComponent(product.imageKey) : '', isVideoKey(product?.imageKey))
   $('#productDialog').showModal()
 }
 async function deleteProduct(id) {
@@ -183,16 +183,32 @@ $('#productForm').addEventListener('submit', async event => {
   } catch (error) { $('#formError').textContent = error.message }
   finally { button.disabled = false }
 })
+let previewObjectUrl
+function showMediaPreview(url, video) {
+  const image = $('#imagePreview'), player = $('#videoPreview')
+  player.pause()
+  player.removeAttribute('src')
+  player.load()
+  image.removeAttribute('src')
+  image.hidden = !url || video
+  player.hidden = !url || !video
+  if (url) (video ? player : image).src = url
+  if (previewObjectUrl && previewObjectUrl !== url) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null }
+}
+$('#productDialog').addEventListener('close', () => showMediaPreview('', false))
 $('#productForm').elements.image.addEventListener('change', event => {
   const file = event.currentTarget.files[0]
   if (!file) return
-  if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
-    $('#formError').textContent = 'خاص الصورة تكون JPG أو PNG أو WebP وأقل من 5MB.'
+  const video = ['video/mp4','video/webm'].includes(file.type)
+  if (!['image/jpeg','image/png','image/webp','video/mp4','video/webm'].includes(file.type) || file.size === 0 || file.size > (video ? 30 : 5) * 1024 * 1024) {
+    $('#formError').textContent = tr('ملف غير صالح: صورة حتى 5MB أو فيديو MP4/WebM حتى 30MB')
     event.currentTarget.value = ''
     return
   }
-  $('#imagePreview').src = URL.createObjectURL(file)
-  $('#imagePreview').hidden = false
+  $('#formError').textContent = ''
+  const url = URL.createObjectURL(file)
+  showMediaPreview(url, video)
+  previewObjectUrl = url
 })
 api('/api/admin/session').then(data => data.authenticated ? showDashboard() : showLogin()).catch(() => showLogin('تعذر الاتصال بالخادم. حاول مجدداً.'))
 document.addEventListener('rahiq:languagechange', () => {
