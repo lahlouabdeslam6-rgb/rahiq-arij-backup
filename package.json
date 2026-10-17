@@ -1,0 +1,15 @@
+{
+  "name": "rahiq-arij-showcase",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Boutique de miel bilingue et backend Cloudflare Workers",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "node preview-server.mjs",
+    "test": "node --test tests/worker.test.mjs"
+  }
+}
